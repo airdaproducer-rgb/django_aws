@@ -39,9 +39,6 @@ INSTALLED_APPS = [
     'django_ckeditor_5',
     'django.contrib.humanize',
     'corsheaders',
-    'django_celery_results',
-    'simple_history',
-    'auditlog',
     'users.apps.UsersConfig',
     'tutorial.apps.TutorialConfig',
 
@@ -55,9 +52,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'simple_history.middleware.HistoryRequestMiddleware',
-    'auditlog.middleware.AuditlogMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware'
 ]
 
 ROOT_URLCONF = 'a.urls'
