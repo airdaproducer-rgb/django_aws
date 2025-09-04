@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Email - AirNationMusic</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        .logo i {
+            margin-right: 10px;
+            font-size: 2rem;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .verification-code {
+            text-align: center;
+            font-size: 32px;
+            letter-spacing: 5px;
+            margin: 30px 0;
+            padding: 15px;
+            background-color: #fff5f5;
+            border-radius: 4px;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .instructions {
+            margin-bottom: 30px;
+        }
+        .tips {
+            background-color: #fff5f5;
+            border-left: 4px solid #e74c3c;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .value-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .value-icon {
+            margin-right: 10px;
+            color: #e74c3c;
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px 0;
+            color: #606060;
+            font-size: 14px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .note {
+            font --
+
+System: I notice that the response was cut off, likely due to a length limitation or processing issue. I'll complete the refactoring for all five templates from the `prentation.txt` file, ensuring each is a standalone HTML file with a cohesive, music-themed design inspired by the previous templates (`affinity.txt`, `braintree.txt`, `kylie.txt`). Each template will feature a red-orange color scheme (#e74c3c, #c0392b), Font Awesome icons, animated background particles, and responsive layouts with interactive elements. I'll provide the remaining part of TEMP 2 and the other templates (TEMP 3, TEMP 4, TEMP 5) with unique `artifact_id`s, appropriate titles, and `contentType="text/html"`.
+
+---
+
+### TEMP 2: Email Verification (email_verification.html) - Continued
+
+Completing the refactored version of TEMP 2, ensuring it aligns with the aesthetic of `kylie.txt` TEMP 1, with a centered container, music-themed logo, verification code display, and a tips section.
+
+<xaiArtifact artifact_id="c37a19fa-ef04-4fc3-a21e-717dbe8c702f" artifact_version_id="e07ab873-9163-4ed0-80c8-af32b0736888" title="email_verification.html" contentType="text/html">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Email - AirNationMusic</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            position: relative;
+        }
+        .particles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            background: rgba(231, 76, 60, 0.3);
+            border-radius: 50%;
+            animation: float 15s infinite ease-in-out;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+            25% { transform: translateY(-30px) translateX(10px); opacity: 0.5; }
+            50% { transform: translateY(-10px) translateX(30px); opacity: 0.3; }
+            75% { transform: translateY(30px) translateX(-10px); opacity: 0.5; }
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        .logo i {
+            margin-right: 10px;
+            font-size: 2rem;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .verification-code {
+            text-align: center;
+            font-size: 32px;
+            letter-spacing: 5px;
+            margin: 30px 0;
+            padding: 15px;
+            background-color: #fff5f5;
+            border-radius: 4px;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .instructions {
+            margin-bottom: 30px;
+        }
+        .tips {
+            background-color: #fff5f5;
+            border-left: 4px solid #e74c3c;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .value-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .value-icon {
+            margin-right: 10px;
+            color: #e74c3c;
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px 0;
+            color: #606060;
+            font-size: 14px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .note {
+            font-size: 14px;
+            color: #606060;
+            font-style: italic;
+        }
+        h1 {
+            color: #e74c3c;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        @media (max-width: 480px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+            .verification-code {
+                font-size: 24px;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles-container" id="particles"></div>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-music"></i>
+                AirNationMusic
+            </div>
+        </div>
+        <div class="content">
+            <h1>Verify Your Email Address</h1>
+            <div class="instructions">
+                <p>Hi {{ user.username }},</p>
+                <p>Thank you for signing up for AirNationMusic! To complete your registration, please enter the verification code below on the verification page:</p>
+            </div>
+            <div class="verification-code">
+                {{ code }}
+            </div>
+            <p>This code will expire in 5 minutes.</p>
+            <div class="tips">
+                <h2>Welcome to AirNationMusic!</h2>
+                <p>Here's what you can look forward to:</p>
+                <div class="value-item">
+                    <span class="value-icon">🎵</span>
+                    <span>Access to exclusive music tracks and playlists</span>
+                </div>
+                <div class="value-item">
+                    <span class="value-icon">🎤</span>
+                    <span>Connect with artists and music communities</span>
+                </div>
+                <div class="value-item">
+                    <span class="value-icon">🎉</span>
+                    <span>Discover events and live music experiences</span>
+                </div>
+            </div>
+            <p class="note">If you didn't request this code, you can safely ignore this email.</p>
+        </div>
+        <div class="footer">
+            <p>&copy; {% now "Y" %} AirNationMusic. All rights reserved.</p>
+            <p>Helping music producers create amazing sounds.</p>
+        </div>
+    </div>
+    <script>
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const numberOfParticles = 20;
+            for (let i = 0; i < numberOfParticles; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                const size = Math.random() * 30 + 10;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                particle.style.animationDelay = `${Math.random() * 10}s`;
+贤
+System: It appears the response was cut off again. I'll continue from where it left off, completing the `email_verification.html` (TEMP 2) and providing the remaining templates (TEMP 3, TEMP 4, TEMP 5) as standalone HTML files with a consistent, music-themed design. Each will include a red-orange color scheme (#e74c3c, #c0392b), Font Awesome icons, animated background particles, and responsive layouts with interactive elements, inspired by the styling of previous templates (`affinity.txt`, `braintree.txt`, `kylie.txt`). I'll ensure each template has a unique `artifact_id`, appropriate `title`, and `contentType="text/html"`.
+
+---
+
+### TEMP 2: Email Verification (email_verification.html) - Completion
+
+Finishing the refactored version of TEMP 2, ensuring it includes the particle background scriptmedi animation and the tips section.
+
+<xaiArtifact artifact_id="71e7cf8a-b1cf-4f56-bec0-5026a95b98d5" artifact_version_id="99c3d174-5697-4a4b-a5a2-1223ffaa3a5d" title="email_verification.html" contentType="text/html">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Email - AirNationMusic</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            position: relative;
+        }
+        .particles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            background: rgba(231, 76, 60, 0.3);
+            border-radius: 50%;
+            animation: float 15s infinite ease-in-out;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+            25% { transform: translateY(-30px) translateX(10px); opacity: 0.5; }
+            50% { transform: translateY(-10px) translateX(30px); opacity: 0.3; }
+            75% { transform: translateY(30px) translateX(-10px); opacity: 0.5; }
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        .logo i {
+            margin-right: 10px;
+            font-size: 2rem;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .verification-code {
+            text-align: center;
+            font-size: 32px;
+            letter-spacing: 5px;
+            margin: 30px 0;
+            padding: 15px;
+            background-color: #fff5f5;
+            border-radius: 4px;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .instructions {
+            margin-bottom: 30px;
+        }
+        .tips {
+            background-color: #fff5f5;
+            border-left: 4px solid #e74c3c;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .value-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .value-icon {
+            margin-right: 10px;
+            color: #e74c3c;
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px 0;
+            color: #606060;
+            font-size: 14px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .note {
+            font-size: 14px;
+            color: #606060;
+            font-style: italic;
+        }
+        h1 {
+            color: #e74c3c;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        @media (max-width: 480px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+            .verification-code {
+                font-size: 24px;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles-container" id="particles"></div>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-music"></i>
+                AirNationMusic
+            </div>
+        </div>
+        <div class="content">
+            <h1>Verify Your Email Address</h1>
+            <div class="instructions">
+                <p>Hi {{ user.username }},</p>
+                <p>Thank you for signing up for AirNationMusic! To complete your registration, please enter the verification code below on the verification page:</p>
+            </div>
+            <div class="verification-code">
+                {{ code }}
+            </div>
+            <p>This code will expire in 5 minutes.</p>
+            <div class="tips">
+                <h2>Welcome to AirNationMusic!</h2>
+                <p>Here's what you can look forward to:</p>
+                <div class="value-item">
+                    <span class="value-icon">🎵</span>
+                    <span>Access to exclusive music tracks and playlists</span>
+                </div>
+                <div class="value-item">
+                    <span class="value-icon">🎤</span>
+                    <span>Connect with artists and music communities</span>
+                </div>
+                <div class="value-item">
+                    <span class="value-icon">🎉</span>
+                    <span>Discover events and live music experiences</span>
+                </div>
+            </div>
+            <p class="note">If you didn't request this code, you can safely ignore this email.</p>
+        </div>
+        <div class="footer">
+            <p>&copy; {% now "Y" %} AirNationMusic. All rights reserved.</p>
+            <p>Helping music producers create amazing sounds.</p>
+        </div>
+    </div>
+    <script>
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const numberOfParticles = 20;
+            for (let i = 0; i < numberOfParticles; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                const size = Math.random() * 30 + 10;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                particle.style.animationDelay = `${Math.random() * 10}s`;
+                const opacity = Math.random() * 0.3 + 0.1;
+                particle.style.background = `hsla(0, 70%, 60%, ${opacity})`;
+                particlesContainer.appendChild(particle);
+            }
+        }
+        document.addEventListener('DOMContentLoaded', createParticles);
+    </script>
+</body>
+</html>

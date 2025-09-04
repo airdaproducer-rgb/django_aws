@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification Limit Reached - AirNationMusic</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f5f7fa;
+            position: relative;
+        }
+        .particles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            background: rgba(231, 76, 60, 0.3);
+            border-radius: 50%;
+            animation: float 15s infinite ease-in-out;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+            25% { transform: translateY(-30px) translateX(10px); opacity: 0.5; }
+            50% { transform: translateY(-10px) translateX(30px); opacity: 0.3; }
+            75% { transform: translateY(30px) translateX(-10px); opacity: 0.5; }
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .header {
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .header h1 {
+            color: #e74c3c;
+            font-size: 2rem;
+            margin: 0;
+        }
+        .icon-container {
+            font-size: 4rem;
+            color: #e74c3c;
+            margin-bottom: 1.5rem;
+        }
+        .content {
+            padding: 20px;
+        }
+        .content p {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        .contact-info {
+            background-color: #fff5f5;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 2rem;
+        }
+        .contact-info h3 {
+            color: #e74c3c;
+            margin-bottom: 1rem;
+        }
+        .home-link {
+            display: inline-blockRic margin-top: 1.5rem;
+            color: #e74c3c;
+            text-decoration: none;
+            font-size: 1rem;
+            padding: 10px 20px;
+            border: 2px solid #e74c3c;
+            border-radius: 5px;
+            transition: background 0.3s, color 0.3s;
+        }
+        .home-link:hover {
+            background: #e74c3c;
+            color: white;
+            text-decoration: none;
+        }
+        @media (max-width: 480px) {
+            .container {
+                margin: 10px;
+                padding: 20px;
+            }
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            .icon-container {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles-container" id="particles"></div>
+    <div class="container">
+        <div class="header">
+            <h1>Verification Limit Reached</h1>
+        </div>
+        <div class="content">
+            <div class="icon-container">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <div class="max-attempts-info">
+                <p>You've reached the maximum number of verification attempts for today (5 attempts).</p>
+                <p>Please try again tomorrow or contact our support team for assistance.</p>
+            </div>
+            <div class="contact-info">
+                <h3>Need help?</h3>
+                <p>Contact our support team at support@airnationmusic.com</p>
+            </div>
+            <a href="{% url 'software:app_user_list' %}" class="home-link">
+                <i class="fas fa-home"></i> Return to Home Page
+            </a>
+        </div>
+    </div>
+    <script>
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const numberOfParticles = 20;
+            for (let i = 0; i < numberOfParticles; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                const size = Math.random() * 30 + 10;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                particle.style.animationDelay = `${Math.random() * 10}s`;
+                const opacity = Math.random() * 0.3 + 0.1;
+                particle.style.background = `hsla(0, 70%, 60%, ${opacity})`;
+                particlesContainer.appendChild(particle);
+            }
+        }
+        document.addEventListener('DOMContentLoaded', createParticles);
+    </script>
+</body>
+</html>

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your AirNationMusic Account</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        .logo i {
+            font-size: 2rem;
+            color: #e74c3c;
+            margin-right: 10px;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .verification-box {
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 25px 0;
+            text-align: center;
+            border: 1px dashed #ddd;
+        }
+        .verification-input {
+            width: 100%;
+            max-width: 200px;
+            padding: 15px;
+            font-size: 1.5rem;
+            text-align: center;
+            letter-spacing: 5px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            margin: 1rem auto;
+            display: block;
+            transition: border-color 0.3s;
+        }
+        .verification-input:focus {
+            border-color: #e74c3c;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2);
+        }
+        .tips {
+            background-color: #fff5f5;
+            border-left: 4px solid #e74c3c;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .footer {
+            text-align: center;
+            padding-top: 20px;
+            color: #777;
+            font-size: 12px;
+            border-top: 1px solid #eee;
+        }
+        h1 {
+            color: #e74c3c;
+            margin-top: 0;
+            font-size: 2rem;
+        }
+        h2 {
+            font-size: 18px;
+            color: #555;
+        }
+        .btn {
+            width: 100%;
+            max-width: 200px;
+            padding: 12px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+            display: block;
+            margin: 1rem auto;
+            text-align: center;
+        }
+        .btn:hover {
+            background: #c0392b;
+        }
+        .resend-link {
+            display: inline-block;
+            margin-top: 1rem;
+            color: #e74c3c;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .resend-link:hover {
+            text-decoration: underline;
+        }
+        .error-message {
+            color: #e74c3c;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        .attempts-info {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #777;
+            text-align: center;
+        }
+        .value-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .value-icon {
+            margin-right: 10px;
+            color: #e74c3c;
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-music"></i>
+                <h1>Verify Your Email</h1>
+            </div>
+        </div>
+        
+        <div class="content">
+            <p>Thank you for joining AirNationMusic! We're thrilled to have you as part of our community where music connects and inspires.</p>
+            
+            <p>Please enter the 6-digit verification code sent to your email to activate your account.</p>
+            
+            <div class="verification-box">
+                <form method="post" id="verifyForm">
+                    {% csrf_token %}
+                    {{ form.code }}
+                    {% if form.code.errors %}
+                        <div class="error-message">{{ form.code.errors }}</div>
+                    {% endif %}
+                    <button type="submit" class="btn">Verify Email</button>
+                </form>
+            </div>
+            
+            <div class="attempts-info">
+                <p>Verification code expires in 5 minutes.</p>
+                <p>Attempts remaining today: {{ attempts_left }} out of 5</p>
+            </div>
+            
+            <a href="{% url 'accounts:resend_verification' %}" class="resend-link">
+                <i class="fas fa-paper-plane"></i> Didn't receive the code? Send again
+            </a>
+            
+            <div class="tips">
+                <h2>Welcome to AirNationMusic!</h2>
+                <p>Here's what you can look forward to:</p>
+                
+                <div class="value-item">
+                    <span class="value-icon">🎵</span>
+                    <span>Access to exclusive music tracks and playlists</span>
+                </div>
+                
+                <div class="value-item">
+                    <span class="value-icon">🎤</span>
+                    <span>Connect with artists and music communities</span>
+                </div>
+                
+                <div class="value-item">
+                    <span class="value-icon">🎉</span>
+                    <span>Discover events and live music experiences</span>
+                </div>
+            </div>
+            
+            <p>If you didn't request this verification code, please ignore this email.</p>
+        </div>
+        
+        <div class="footer">
+            <p>&copy; 2025 AirNationMusic. All rights reserved.</p>
+            <p>Connecting the world through the power of music.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!-- tutorial/admn/video_detail.html -->
+{% extends 'tutorial/admn/base.html' %}
+
+{% block title %}{{ video.title }} - YouTube Admin{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div class="flex justify-between items-center">
+        <h1><i class="fas fa-video"></i> Video Details</h1>
+        <div>
+            <a href="{% url 'youtube:video_list' %}" class="btn"><i class="fas fa-arrow-left"></i> Back to List</a>
+            <a href="{% url 'youtube:video_update' video.id %}" class="btn btn-warning"><i class="fas fa-edit"></i> Edit</a>
+        </div>
+    </div>
+</div>
+
+<div class="grid">
+    <div class="col-8 col-sm-12">
+        <div class="card">
+            <div class="card-header">
+                <h2>{{ video.title }}</h2>
+            </div>
+            
+            <div class="video-embed mb-4">
+                {% with video_id=video.youtube_link|cut:"https://www.youtube.com/watch?v=" %}
+                    <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%;">
+                        <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" src="https://www.youtube.com/embed/{{ video_id }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                {% endwith %}
+            </div>
+            
+            <h3>Description</h3>
+            <div class="mb-4" style="white-space: pre-line;">{{ video.description }}</div>
+            
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <p><strong>Status:</strong> 
+                        {% if video.is_active %}
+                            <span class="badge badge-success">Active</span>
+                        {% else %}
+                            <span class="badge badge-danger">Inactive</span>
+                        {% endif %}
+                    </p>
+                    <p><strong>Created:</strong> {{ video.timestamp }}</p>
+                    <p><strong>Last Updated:</strong> {{ video.timestamp_modified }}</p>
+                    <p><strong>Password Protected:</strong> {% if video.password %}Yes{% else %}No{% endif %}</p>
+                </div>
+                
+                <div>
+                    <p><i class="fas fa-eye"></i> <strong>Total Views:</strong> {{ view_count }}</p>
+                    <p><i class="fas fa-list"></i> <strong>List Page Views:</strong> {{ list_view_count }}</p>
+                    <p><i class="fas fa-info-circle"></i> <strong>Detail Page Views:</strong> {{ detail_view_count }}</p>
+                    <p><i class="fas fa-comment"></i> <strong>Comments:</strong> {{ comment_count }}</p>
+                </div>
+            </div>
+            
+            {% if video.admin_notes %}
+                <h3>Admin Notes</h3>
+                <div class="mb-4" style="white-space: pre-line;">{{ video.admin_notes }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2>View Statistics</h2>
+            </div>
+            <div class="chart-container">
+                <canvas id="viewsChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2>Comments ({{ comment_count }})</h2>
+            </div>
+            
+            {% if comments %}
+                {% for comment in comments %}
+                    <div class="card mb-2" style="box-shadow: none; border: 1px solid #eee;">
+                        <div class="flex justify-between items-center mb-2">
+                            <div>
+                                <strong>
+                                    {% if comment.is_anonymous %}
+                                        {% if comment.name %}{{ comment.name }}{% else %}Anonymous{% endif %}
+                                    {% else %}
+                                        {{ comment.user.username }}
+                                    {% endif %}
+                                </strong>
+                                <small>{{ comment.created_at }}</small>
+                            </div>
+                            <div class="actions">
+                                <form action="{% url 'youtube:comment_approve' comment.id %}" method="post" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn {% if comment.is_approved %}btn-warning{% else %}btn-success{% endif %}" title="{% if comment.is_approved %}Unapprove{% else %}Approve{% endif %}">
+                                        <i class="fas {% if comment.is_approved %}fa-thumbs-down{% else %}fa-thumbs-up{% endif %}"></i>
+                                    </button>
+                                </form>
+                                <a href="{% url 'youtube:comment_delete' comment.id %}" class="btn btn-danger" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <p>{{ comment.content }}</p>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No comments yet.</p>
+            {% endif %}
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3>Add Comment</h3>
+                </div>
+                <form action="{% url 'youtube:add_comment' video.id %}" method="post">
+                    {% csrf_token %}
+                    {% if not user.is_authenticated %}
+                        <div class="form-group">
+                            <label for="name">Name (optional)</label>
+                            <input type="text" id="name" name="name" class="form-control">
+                        </div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label for="content">Comment</label>
+                        <textarea id="content" name="content" class="form-control" required></textarea>
+                    </div>
+                    {% if user.is_authenticated %}
+                        <div class="checkbox-container mb-4">
+                            <input type="checkbox" id="is_anonymous" name="is_anonymous">
+                            <label for="is_anonymous">Post anonymously</label>
+                        </div>
+                    {% endif %}
+                    <button type="submit" class="btn btn-success">Submit Comment</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-4 col-sm-12">
+        <div class="card">
+            <div class="card-header">
+                <h2>Quick Actions</h2>
+            </div>
+            <div class="actions" style="flex-direction: column;">
+                <a href="{% url 'youtube:video_update' video.id %}" class="btn btn-warning mb-2">
+                    <i class="fas fa-edit"></i> Edit Video
+                </a>
+                <a href="{% url 'youtube:video_delete' video.id %}" class="btn btn-danger mb-2">
+                    <i class="fas fa-trash"></i> Delete Video
+                </a>
+                <form action="{% url 'youtube:video_bulk_action' %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="video_ids" value="{{ video.id }}">
+                    <input type="hidden" name="action" value="{% if video.is_active %}deactivate{% else %}activate{% endif %}">
+                    <button type="submit" class="btn {% if video.is_active %}btn-danger{% else %}btn-success{% endif %} mb-2" style="width: 100%;">
+                        <i class="fas {% if video.is_active %}fa-toggle-off{% else %}fa-toggle-on{% endif %}"></i>
+                        {% if video.is_active %}Deactivate{% else %}Activate{% endif %} Video
+                    </button>
+                </form>
+                <a href="{{ video.youtube_link }}" target="_blank" class="btn mb-2">
+                    <i class="fab fa-youtube"></i> View on YouTube
+                </a>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2>Video Information</h2>
+            </div>
+            <div>
+                <p><strong>YouTube Link:</strong><br>
+                <a href="{{ video.youtube_link }}" target="_blank">{{ video.youtube_link }}</a></p>
+                
+                {% with video_id=video.youtube_link|cut:"https://www.youtube.com/watch?v=" %}
+                    <p><strong>Video ID:</strong><br>{{ video_id }}</p>
+                {% endwith %}
+                
+                <p><strong>Uploaded by:</strong><br>{{ video.user.username }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Views Chart
+        var ctx = document.getElementById('viewsChart').getContext('2d');
+        var viewsChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ days_labels|safe }},
+                datasets: [{
+                    label: 'Views',
+                    data: {{ views_data|safe }},
+                    borderColor: '#3498db',
+                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

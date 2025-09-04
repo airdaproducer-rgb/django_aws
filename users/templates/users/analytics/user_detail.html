@@ -1,0 +1,446 @@
+<!-- templates/users/analytics/user_detail.html -->
+{% extends 'users/analytics/base.html' %}
+
+{% block extra_head %}
+<style>
+    .user-info {
+        display: flex;
+        gap: 30px;
+        margin-bottom: 30px;
+    }
+    
+    .user-info-card {
+        flex: 1;
+        background-color: white;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+    }
+    
+    .user-info-card h2 {
+        margin-top: 0;
+        margin-bottom: 20px;
+        color: var(--gray-800);
+        font-size: 1.25rem;
+        border-bottom: 1px solid var(--gray-300);
+        padding-bottom: 10px;
+    }
+    
+    .user-info-item {
+        margin-bottom: 15px;
+    }
+    
+    .user-info-item label {
+        font-weight: 600;
+        color: var(--gray-700);
+        display: block;
+        margin-bottom: 5px;
+    }
+    
+    .user-info-item span {
+        display: block;
+    }
+    
+    .session-table td:nth-child(3),
+    .session-table td:nth-child(4) {
+        text-align: right;
+    }
+    
+    .active-session {
+        background-color: rgba(40, 167, 69, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="page-header">
+    <h1>
+        {% if analytics.is_authenticated %}
+            User Analytics: {{ analytics.user.email }}
+        {% else %}
+            Anonymous User: {{ analytics.session_id|truncatechars:8 }}
+        {% endif %}
+    </h1>
+    <button id="exportBtn" class="btn btn-export">Export CSV</button>
+</div>
+
+<div class="filters">
+    <form id="filterForm" method="get">
+        {% if not analytics.is_authenticated %}
+        <input type="hidden" name="session_id" value="{{ analytics.session_id }}">
+        {% endif %}
+        <div class="filter-group">
+            <label for="days">Date Range</label>
+            <select name="days" id="days">
+                <option value="1" {% if days == 1 %}selected{% endif %}>Last 24 hours</option>
+                <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
+                <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
+                <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="hours">Time Filter</label>
+            <select name="hours" id="hours">
+                <option value="0" {% if hours == 0 %}selected{% endif %}>All Time</option>
+                <option value="1" {% if hours == 1 %}selected{% endif %}>Last 1 hour</option>
+                <option value="3" {% if hours == 3 %}selected{% endif %}>Last 3 hours</option>
+                <option value="6" {% if hours == 6 %}selected{% endif %}>Last 6 hours</option>
+                <option value="12" {% if hours == 12 %}selected{% endif %}>Last 12 hours</option>
+                <option value="24" {% if hours == 24 %}selected{% endif %}>Last 24 hours</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Apply Filters</button>
+    </form>
+</div>
+
+{% if error %}
+<div class="alert alert-danger">
+    {{ error }}
+</div>
+{% else %}
+
+<div class="user-info">
+    <div class="user-info-card">
+        <h2>User Information</h2>
+        {% if analytics.is_authenticated %}
+        <div class="user-info-item">
+            <label>Email</label>
+            <span>{{ analytics.user.email }}</span>
+        </div>
+        <div class="user-info-item">
+            <label>Username</label>
+            <span>{{ analytics.user.username }}</span>
+        </div>
+        <div class="user-info-item">
+            <label>Registration Date</label>
+            <span>{{ analytics.user.registration_date }}</span>
+        </div>
+        {% else %}
+        <div class="user-info-item">
+            <label>Session ID</label>
+            <span>{{ analytics.session_id }}</span>
+        </div>
+        <div class="user-info-item">
+            <label>User Type</label>
+            <span>Anonymous</span>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="user-info-card">
+        <h2>Activity Summary</h2>
+        <div class="user-info-item">
+            <label>Total Page Views</label>
+            <span>{{ analytics.total_page_views }}</span>
+        </div>
+        <div class="user-info-item">
+            <label>Average Retention Time</label>
+            <span id="avg-retention">{{ analytics.average_retention }}</span>
+        </div>
+        <div class="user-info-item">
+            <label>Total Time Spent</label>
+            <span id="total-time">{{ analytics.total_time }}</span>
+        </div>
+        <div class="user-info-item">
+            <label>Sessions</label>
+            <span>{{ analytics.sessions.count }}</span>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Page Visits Over Time</h2>
+    </div>
+    <div class="card-body">
+        <div class="chart-container">
+            <canvas id="page-visits-chart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Sessions</h2>
+    </div>
+    <div class="card-body">
+        <table class="session-table">
+            <thead>
+                <tr>
+                    <th>Session ID</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Duration</th>
+                    <th>Device</th>
+                    <th>Browser</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for session in analytics.sessions %}
+                <tr {% if session.is_active %}class="active-session"{% endif %}>
+                    <td>{{ session.session_id|truncatechars:10 }}</td>
+                    <td>{{ session.start_time }}</td>
+                    <td>{{ session.end_time|default:'Active' }}</td>
+                    <td class="duration-cell">{{ session.duration|default:'N/A' }}</td>
+                    <td>{{ session.device_type }}</td>
+                    <td>{{ session.browser }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">No sessions found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Page Visits</h2>
+    </div>
+    <div class="card-body">
+        <table>
+            <thead>
+                <tr>
+                    <th>URL</th>
+                    <th>Page Title</th>
+                    <th>Timestamp</th>
+                    <th>Referrer</th>
+                    <th>Device</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for visit in page_visits %}
+                <tr>
+                    <td><a href="{% url 'accounts:page_view_report' %}?url={{ visit.url|urlencode }}">{{ visit.url|truncatechars:50 }}</a></td>
+                    <td>{{ visit.page_title|default:'-'|truncatechars:30 }}</td>
+                    <td>{{ visit.timestamp }}</td>
+                    <td>{{ visit.referrer|default:'-'|truncatechars:30 }}</td>
+                    <td>{{ visit.device_type }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">No page visits found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="pagination">
+            <span class="step-links">
+                {% if page_visits.has_previous %}
+                    <a href="?{% if not analytics.is_authenticated %}session_id={{ analytics.session_id }}&{% endif %}page=1">&laquo; first</a>
+                    <a href="?{% if not analytics.is_authenticated %}session_id={{ analytics.session_id }}&{% endif %}page={{ page_visits.previous_page_number }}">previous</a>
+                {% endif %}
+        
+                <span class="current">
+                    Page {{ page_visits.number }} of {{ page_visits.paginator.num_pages }}.
+                </span>
+        
+                {% if page_visits.has_next %}
+                    <a href="?{% if not analytics.is_authenticated %}session_id={{ analytics.session_id }}&{% endif %}page={{ page_visits.next_page_number }}">next</a>
+                    <a href="?{% if not analytics.is_authenticated %}session_id={{ analytics.session_id }}&{% endif %}page={{ page_visits.paginator.num_pages }}">last &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Navigation Frequency</h2>
+    </div>
+    <div class="card-body">
+        <div class="chart-container">
+            <canvas id="navigation-chart"></canvas>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    $(document).ready(function() {
+        // Format durations
+        formatDurations();
+        
+        // Page load charts
+        renderPageVisitsChart();
+        renderNavigationChart();
+        
+        // Filter form submission
+        $('#filterForm').on('submit', function(e) {
+            const days = $('#days').val();
+            const hours = $('#hours').val();
+            
+            // Update URL with filter parameters
+            updateUrlWithFilters({
+                days: days,
+                hours: hours,
+                {% if not analytics.is_authenticated %}
+                session_id: '{{ analytics.session_id }}'
+                {% endif %}
+            });
+            
+            // Don't submit if we're just updating the URL
+            if (e.target.tagName.toLowerCase() === 'form') {
+                return true;
+            }
+            return false;
+        });
+        
+        // Export button
+        $('#exportBtn').on('click', function() {
+            exportUserData();
+        });
+    });
+    
+    function renderPageVisitsChart() {
+        const ctx = document.getElementById('page-visits-chart').getContext('2d');
+        
+        // Group page visits by date
+        const pageVisits = {{ analytics.page_visits|safe }};
+        const visitsByDate = {};
+        
+        pageVisits.forEach(visit => {
+            const date = new Date(visit.timestamp).toLocaleDateString();
+            visitsByDate[date] = (visitsByDate[date] || 0) + 1;
+        });
+        
+        const labels = Object.keys(visitsByDate);
+        const data = Object.values(visitsByDate);
+        
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Page Visits',
+                    data: data,
+                    backgroundColor: 'rgba(74, 108, 247, 0.5)',
+                    borderColor: 'rgba(74, 108, 247, 1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function renderNavigationChart() {
+        const ctx = document.getElementById('navigation-chart').getContext('2d');
+        
+        // Group navigation paths by date
+        const navigationPaths = {{ analytics.navigation_paths|safe }};
+        const navigationsByDate = {};
+        
+        navigationPaths.forEach(nav => {
+            const date = new Date(nav.timestamp).toLocaleDateString();
+            navigationsByDate[date] = (navigationsByDate[date] || 0) + 1;
+        });
+        
+        const labels = Object.keys(navigationsByDate);
+        const data = Object.values(navigationsByDate);
+        
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Navigation Frequency',
+                    data: data,
+                    backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function formatDurations() {
+        // Format the average retention time
+        const avgRetention = $('#avg-retention').text();
+        if (avgRetention && avgRetention !== 'None') {
+            const durationSeconds = parseFloat(avgRetention);
+            $('#avg-retention').text(formatDuration(durationSeconds));
+        } else {
+            $('#avg-retention').text('N/A');
+        }
+        
+        // Format the total time spent
+        const totalTime = $('#total-time').text();
+        if (totalTime && totalTime !== 'None') {
+            const durationSeconds = parseFloat(totalTime);
+            $('#total-time').text(formatDuration(durationSeconds));
+        } else {
+            $('#total-time').text('N/A');
+        }
+        
+        // Format session durations
+        $('.duration-cell').each(function() {
+            const duration = $(this).text();
+            if (duration !== 'N/A') {
+                // Parse the time format (HH:MM:SS)
+                const parts = duration.split(':');
+                if (parts.length === 3) {
+                    const hours = parseInt(parts[0]);
+                    const minutes = parseInt(parts[1]);
+                    const seconds = parseInt(parts[2]);
+                    
+                    const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+                    $(this).text(formatDuration(totalSeconds));
+                }
+            }
+        });
+    }
+    
+    function exportUserData() {
+        // We'll just generate a simple CSV from the page data
+        const userData = {
+            {% if analytics.is_authenticated %}
+            'user_id': '{{ analytics.user.id }}',
+            'email': '{{ analytics.user.email }}',
+            'username': '{{ analytics.user.username }}',
+            'registration_date': '{{ analytics.user.registration_date }}',
+            {% else %}
+            'session_id': '{{ analytics.session_id }}',
+            'user_type': 'Anonymous',
+            {% endif %}
+            'total_page_views': '{{ analytics.total_page_views }}',
+            'average_retention': $('#avg-retention').text(),
+            'total_time': $('#total-time').text(),
+            'sessions_count': '{{ analytics.sessions.count }}'
+        };
+        
+        const data = [userData];
+        exportToCSV(data, 'user_analytics.csv');
+    }
+</script>
+{% endblock %}

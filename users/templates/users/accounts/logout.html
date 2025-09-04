@@ -1,0 +1,161 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logged Out - AIR Nation Music</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3a0ca3;
+            --secondary: #f72585;
+            --accent: #4cc9f0;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --gray: #e9ecef;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--dark);
+            line-height: 1.7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logout-container {
+            width: 100%;
+            max-width: 500px;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            background-color: white;
+            text-align: center;
+            margin: 1rem;
+        }
+
+        .header-container {
+            margin-bottom: 1.5rem;
+        }
+
+        .header-container h1 {
+            font-size: 2rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-weight: 800;
+        }
+
+        .logout-info {
+            color: #666;
+            font-size: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .logout-info p {
+            margin-bottom: 1rem;
+        }
+
+        .highlight {
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(58, 12, 163, 0.2);
+        }
+
+        .login-btn i {
+            font-size: 1.2rem;
+        }
+
+        /* Mobile Styles */
+        @media (max-width: 576px) {
+            .logout-container {
+                padding: 1.5rem;
+                margin: 0.5rem;
+            }
+
+            .header-container h1 {
+                font-size: 1.6rem;
+            }
+
+            .logout-info {
+                font-size: 0.9rem;
+            }
+
+            .login-btn {
+                padding: 10px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="logout-container">
+        <div class="header-container">
+            <h1><i class="fas fa-music"></i> We're Sad to See You Go</h1>
+        </div>
+
+        <div class="logout-info">
+            <p>You've signed out of your AIR Nation Music account, leaving behind a vibrant community of <span class="highlight">thousands of music producers</span>.</p>
+            <p>Our mission to <span class="highlight">redefine the music industry</span> with <span class="highlight">free cutting-edge software</span> and creative tools awaits your return. Come back and make your mark!</p>
+        </div>
+
+        <a href="{% url 'accounts:login' %}" class="login-btn">
+            <i class="fas fa-sign-in-alt"></i>
+            <span>Rejoin the Music Revolution</span>
+        </a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fade-in animation
+            const container = document.querySelector('.logout-container');
+            container.style.opacity = '0';
+            container.style.transform = 'translateY(20px)';
+            container.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+
+            setTimeout(() => {
+                container.style.opacity = '1';
+                container.style.transform = 'translateY(0)';
+            }, 300);
+        });
+    </script>
+</body>
+</html>

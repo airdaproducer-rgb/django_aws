@@ -1,0 +1,22 @@
+name: mmb_tutorial
+services:
+- name: web
+  github:
+    repo: airdaproducer-rgb/mmb
+    branch: main
+    deploy_on_push: true
+  source_dir: /
+  run_command: gunicorn a.wsgi --log-file -
+  environment_slug: python
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  routes:
+  - path: /
+  http_port: 8000
+  environment_variables:
+  - key: DEBUG
+    value: "False"
+  - key: PYTHON_VERSION
+    value: "3.11.8"
+  - key: SECRET_KEY
+    value: "django-insecure-ftym5*b#aukx)z0xuiq60nr!4e-s2pd*j3=1_8f_^*3(vc#_1k"

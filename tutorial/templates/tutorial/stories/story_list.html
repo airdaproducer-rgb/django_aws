@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .messages {
+            margin-bottom: 20px;
+        }
+        .message {
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        .message.success {
+            background-color: #dff0d8;
+            color: #3c763d;
+            border: 1px solid #d6e9c6;
+        }
+        .create-link {
+            display: inline-block;
+            background: #0275d8;
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .create-link:hover {
+            background: #0269c2;
+        }
+        .story-list {
+            list-style: none;
+            padding: 0;
+        }
+        .story-item {
+            background: #f9f9f9;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #0275d8;
+        }
+        .story-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .story-meta {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+        .story-content {
+            margin-top: 10px;
+            white-space: pre-line;
+        }
+        .empty-list {
+            background: #f9f9f9;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            color: #666;
+        }
+        .countdown {
+            color: #0275d8;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Stories</h1>
+    
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="message {{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <a href="{% url 'story-create' %}" class="create-link">Create New Story</a>
+    
+    {% if stories %}
+    <ul class="story-list">
+        {% for story in stories %}
+        <li class="story-item">
+            <div class="story-title">{{ story.title }}</div>
+            <div class="story-meta">
+                Created: {{ story.created_at|date:"F j, Y, g:i a" }}<br>
+                Scheduled to print after: 
+                {% if story.time_display.hours %}
+                    {{ story.time_display.hours }} hour(s)
+                {% endif %}
+                {% if story.time_display.minutes %}
+                    {{ story.time_display.minutes }} minute(s)
+                {% endif %}
+                {% if story.time_display.seconds %}
+                    {{ story.time_display.seconds }} second(s)
+                {% endif %}
+                <br>
+                Time remaining: <span class="countdown" data-story-id="{{ story.id }}"
+                    data-created-at="{{ story.created_at|date:'c' }}"
+                    data-publish-after="{{ story.publish_after.total_seconds|floatformat:0 }}">Calculating...</span>
+            </div>
+            <div class="story-content">{{ story.content }}</div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <div class="empty-list">
+        No stories have been created yet. Click "Create New Story" to get started.
+    </div>
+    {% endif %}
+
+    <script>
+        function updateCountdowns() {
+            const now = new Date();
+            document.querySelectorAll('.countdown').forEach(span => {
+                const createdAt = new Date(span.dataset.createdAt);
+                const publishAfterSeconds = parseInt(span.dataset.publishAfter);
+                const endTime = new Date(createdAt.getTime() + publishAfterSeconds * 1000);
+                const timeRemaining = endTime - now;
+
+                if (timeRemaining <= 0) {
+                    span.textContent = 'Printed';
+                    return;
+                }
+
+                const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
+                const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+
+                let display = [];
+                if (hours > 0) display.push(`${hours} hour(s)`);
+                if (minutes > 0) display.push(`${minutes} minute(s)`);
+                if (seconds >= 0) display.push(`${seconds} second(s)`);
+                span.textContent = display.join(' ') || '0 second(s)';
+            });
+        }
+
+        // Update countdown every second
+        updateCountdowns();
+        setInterval(updateCountdowns, 1000);
+    </script>
+</body>
+</html>

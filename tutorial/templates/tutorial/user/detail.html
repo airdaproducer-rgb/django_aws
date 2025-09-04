@@ -1,0 +1,471 @@
+{% extends "tutorial/user/base.html" %}
+
+{% block title %}{{ video.title }} - MMB Tutorials{% endblock %}
+
+{% block extra_css %}
+<style>
+    .video-detail {
+        margin-top: 20px;
+        padding: 0 10px;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow-x: hidden;
+    }
+    
+    .video-content-wrapper {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    /* Two-column layout for larger screens */
+    @media (min-width: 992px) {
+        .video-content-wrapper {
+            flex-direction: row;
+            gap: 30px;
+        }
+        
+        .video-content {
+            flex: 2;
+        }
+        
+        .comments-section {
+            flex: 1;
+            margin-top: 0;
+        }
+    }
+    
+    .video-content {
+        width: 100%;
+    }
+    
+    .video-title {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: var(--secondary-color);
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        max-width: 100%;
+    }
+    
+    .video-player-container {
+        position: relative;
+        width: 100%;
+        padding-top: 56.25%; /* 16:9 Aspect Ratio */
+        margin-bottom: 20px;
+        border-radius: 8px;
+        overflow: hidden;
+        background-color: #000;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+    
+    .video-player {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+    
+    .video-description {
+        background-color: white;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        line-height: 1.7;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        max-width: 100%;
+    }
+    
+    .comments-section {
+        margin-top: 30px;
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .section-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: var(--secondary-color);
+        display: flex;
+        align-items: center;
+    }
+    
+    .section-title i {
+        margin-right: 10px;
+        color: var(--primary-color);
+    }
+    
+    .comment-form {
+        background-color: white;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+        width: 100%;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        font-size: 16px;
+        box-sizing: border-box;
+    }
+    
+    textarea.form-control {
+        min-height: 100px;
+        resize: vertical;
+    }
+    
+    .form-control:focus {
+        border-color: var(--primary-color);
+        outline: none;
+    }
+    
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .checkbox-group input {
+        margin-right: 10px;
+    }
+    
+    .submit-button {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .submit-button:hover {
+        background-color: #d30000;
+    }
+    
+    .comments-list {
+        margin-top: 20px;
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .comment {
+        background-color: white;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        max-width: 100%;
+    }
+    
+    .comment-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .comment-author {
+        font-weight: 600;
+        color: var(--secondary-color);
+        margin-bottom: 5px;
+    }
+    
+    .comment-date {
+        font-size: 14px;
+        color: #888;
+    }
+    
+    .comment-content {
+        line-height: 1.6;
+        max-width: 100%;
+    }
+    
+    .no-comments {
+        text-align: center;
+        padding: 30px 15px;
+        color: #666;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    @media (max-width: 768px) {
+        .video-title {
+            font-size: 18px;
+        }
+        
+        .comment-header {
+            flex-direction: column;
+        }
+        
+        .video-detail {
+            padding: 0 5px;
+        }
+        
+        .video-description,
+        .comment-form,
+        .comment {
+            padding: 12px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .section-title {
+            font-size: 16px;
+        }
+        
+        .submit-button {
+            width: 100%;
+        }
+    }
+    
+    /* New styles for AJAX comment features */
+    .error-message {
+        color: #d9534f;
+        font-size: 14px;
+        margin-top: 5px;
+        display: none;
+    }
+    
+    .comment-form-spinner {
+        display: none;
+        margin-left: 10px;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(0, 0, 0, 0.1);
+        border-radius: 50%;
+        border-top-color: var(--primary-color);
+        animation: spinner 1s ease-in-out infinite;
+    }
+    
+    @keyframes spinner {
+        to {transform: rotate(360deg);}
+    }
+    
+    .form-control.error {
+        border-color: #d9534f;
+    }
+    
+    .comment-success-message {
+        background-color: #dff0d8;
+        color: #3c763d;
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 15px;
+        display: none;
+    }
+    
+    .comment-new {
+        animation: fadeIn 0.5s;
+    }
+    
+    @keyframes fadeIn {
+        from {opacity: 0; transform: translateY(10px);}
+        to {opacity: 1; transform: translateY(0);}
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="video-detail">
+        <h1 class="video-title">{{ video.title }}</h1>
+        
+        <div class="video-content-wrapper">
+            <div class="video-content">
+                <div class="video-player-container">
+                    {% if video_id %}
+                        <iframe 
+                            class="video-player"
+                            src="https://www.youtube.com/embed/{{ video_id }}" 
+                            allowfullscreen
+                        ></iframe>
+                    {% else %}
+                        <div class="video-player" style="background-color: #f0f0f0; display: flex; align-items: center; justify-content: center;">
+                            <p>Unable to load video. Please check the URL.</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="video-description">
+                    {{ video.description|linebreaks }}
+                </div>
+            </div>
+            
+            <div class="comments-section">
+                <h2 class="section-title"><i class="fas fa-comments"></i> Comments <span id="comments-count">({{ comments|length }})</span></h2>
+                
+                <div class="comment-form">
+                    <div class="comment-success-message">
+                        <i class="fas fa-check-circle"></i> Your comment has been posted successfully!
+                    </div>
+                    <form method="POST" id="comment-form" data-url="{% url 'youtube:detail' video.pk %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="{{ form.content.id_for_label }}">Share your thoughts:</label>
+                            {{ form.content }}
+                            <div class="error-message" id="content-error"></div>
+                        </div>
+                        
+                        {% if not user.is_authenticated %}
+                            <div class="form-group">
+                                <label for="{{ form.name.id_for_label }}">Your Name:</label>
+                                {{ form.name }}
+                                <div class="error-message" id="name-error"></div>
+                            </div>
+                        {% else %}
+                            <div class="checkbox-group">
+                                {{ form.is_anonymous }}
+                                <label for="{{ form.is_anonymous.id_for_label }}">Post anonymously</label>
+                            </div>
+                        {% endif %}
+                        
+                        <button type="submit" class="submit-button" id="submit-comment">
+                            Post Comment
+                            <span class="comment-form-spinner"></span>
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="comments-list" id="comments-container">
+                    {% for comment in comments %}
+                        <div class="comment">
+                            <div class="comment-header">
+                                <div class="comment-author">
+                                    {% if comment.is_anonymous %}
+                                        Anonymous
+                                    {% else %}
+                                        {{ comment.name }}
+                                    {% endif %}
+                                </div>
+                                <div class="comment-date">{{ comment.created_at|date:"F d, Y" }}</div>
+                            </div>
+                            <div class="comment-content">
+                                {{ comment.content|linebreaks }}
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="no-comments" id="no-comments">
+                            <i class="far fa-comment-dots fa-3x" style="color: #ddd; margin-bottom: 15px;"></i>
+                            <p>No comments yet. Be the first to share your thoughts!</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Toggle name field visibility based on anonymous checkbox
+        $('#id_is_anonymous').change(function() {
+            if($(this).is(':checked')) {
+                $('#id_name').parent().slideUp();
+            } else {
+                $('#id_name').parent().slideDown();
+            }
+        });
+        
+        // AJAX comment submission
+        $('#comment-form').submit(function(e) {
+            e.preventDefault();
+            
+            // Reset error messages
+            $('.error-message').hide();
+            $('.form-control').removeClass('error');
+            $('.comment-success-message').hide();
+            
+            // Show spinner
+            $('.comment-form-spinner').show();
+            $('#submit-comment').prop('disabled', true);
+            
+            // Get the form data
+            const formData = $(this).serialize();
+            const url = $(this).data('url');
+            
+            // Submit the form via AJAX
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Comment was successfully posted
+                        
+                        // Reset the form
+                        $('#comment-form')[0].reset();
+                        
+                        // Show success message
+                        $('.comment-success-message').slideDown().delay(3000).slideUp();
+                        
+                        // Update comments count
+                        $('#comments-count').text('(' + response.comment_count + ')');
+                        
+                        // Remove the "no comments" message if it exists
+                        if ($('#no-comments').length) {
+                            $('#no-comments').remove();
+                        }
+                        
+                        // Prepend the new comment to the comments list
+                        const newComment = $(response.comment_html).addClass('comment-new');
+                        $('#comments-container').prepend(newComment);
+                        
+                        // Scroll to the new comment
+                        $('html, body').animate({
+                            scrollTop: newComment.offset().top - 100
+                        }, 500);
+                    } else {
+                        // Display validation errors
+                        $.each(response.errors, function(field, messages) {
+                            $('#' + field + '-error').text(messages[0]).show();
+                            $('#id_' + field).addClass('error');
+                        });
+                    }
+                },
+                error: function() {
+                    alert('An error occurred while posting your comment. Please try again.');
+                },
+                complete: function() {
+                    // Hide spinner and re-enable submit button
+                    $('.comment-form-spinner').hide();
+                    $('#submit-comment').prop('disabled', false);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,10 @@
+The file contains django models,view,template and base template. i want modifications as follows.
+1.modifications for def UserListView(request)
+-convert to class based views.
+-add pagination for 18 items per page.
+
+2.modifications for template(note that #list.html extends #BASE TEMPLATE)
+-the {{ video.title }} and {{ video.description }} should not be underlined.
+-the title should be bolded
+-there should be a space or padding between title,thumbnail and description.
+-some thumbnail aren't appearing, you can you different quality alternatives so as to make sure each item MUST show thumbnail

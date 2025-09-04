@@ -1,0 +1,655 @@
+={% extends 'users/analytics/base.html' %}
+
+{% block extra_head %}
+<style>
+    .top-pages-table td:nth-child(2),
+    .top-pages-table td:nth-child(3) {
+        text-align: right;
+    }
+
+    .user-activity-table td:nth-child(3),
+    .user-activity-table td:nth-child(4),
+    .user-activity-table td:nth-child(5) {
+        text-align: right;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="page-header">
+    <h1>Analytics Dashboard</h1>
+    <button id="exportBtn" class="btn btn-export">Export CSV</button>
+</div>
+
+<div class="filters">
+    <form id="filterForm" method="get">
+        <div class="filter-group">
+            <label for="days">Date Range</label>
+            <select name="days" id="days">
+                <option value="1" {% if days == 1 %}selected{% endif %}>Last 24 hours</option>
+                <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
+                <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
+                <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="hours">Time Filter</label>
+            <select name="hours" id="hours">
+                <option value="0" {% if hours == 0 %}selected{% endif %}>All Time</option>
+                <option value="1" {% if hours == 1 %}selected{% endif %}>Last 1 hour</option>
+                <option value="3" {% if hours == 3 %}selected{% endif %}>Last 3 hours</option>
+                <option value="6" {% if hours == 6 %}selected{% endif %}>Last 6 hours</option>
+                <option value="12" {% if hours == 12 %}selected{% endif %}>Last 12 hours</option>
+                <option value="24" {% if hours == 24 %}selected{% endif %}>Last 24 hours</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="device_type">Device Type</label>
+            <select name="device_type" id="device_type">
+                <option value="" {% if not device_type %}selected{% endif %}>All Devices</option>
+                <option value="desktop" {% if device_type == 'desktop' %}selected{% endif %}>Desktop</option>
+                <option value="mobile" {% if device_type == 'mobile' %}selected{% endif %}>Mobile</option>
+                <option value="tablet" {% if device_type == 'tablet' %}selected{% endif %}>Tablet</option>
+                <option value="unknown" {% if device_type == 'unknown' %}selected{% endif %}>Unknown</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Apply Filters</button>
+    </form>
+</div>
+
+<div class="metrics-grid">
+    <div class="metric-card">
+        <h3>Total Page Views</h3>
+        <div class="value" id="total-page-views">{{ summary.total_page_views }}</div>
+    </div>
+    <div class="metric-card">
+        <h3>Unique Users</h3>
+        <div class="value" id="unique-users">{{ summary.unique_users }}</div>
+    </div>
+    <div class="metric-card">
+        <h3>Unique Sessions</h3>
+        <div class="value" id="unique-sessions">{{ summary.unique_sessions }}</div>
+    </div>
+    <div class="metric-card">
+        <h3>Avg Session Duration</h3>
+        <div class="value" id="avg-duration">{{ summary.avg_duration|default:'N/A' }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Page Views Over Time</h2>
+        <button class="btn btn-secondary refresh-chart" data-target="page-views-chart">Refresh</button>
+    </div>
+    <div class="card-body">
+        <div class="chart-container">
+            <canvas id="page-views-chart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Top Pages</h2>
+        <button class="btn btn-secondary refresh-table" data-target="top-pages-table">Refresh</button>
+    </div>
+    <div class="card-body">
+        <table class="top-pages-table" id="top-pages-table">
+            <thead>
+                <tr>
+                    <th>URL</th>
+                    <th>Views</th>
+                    <th>% of Traffic</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for page in top_pages %}
+                <tr>
+                    <td><a href="{% url 'accounts:page_view_report' %}?url={{ page.url|urlencode }}">{{ page.path }}</a></td>
+                    <td>{{ page.count }}</td>
+                    <td>{{ page.percentage|floatformat:2 }}%</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3">No page views found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer">
+        <form action="{% url 'accounts:page_view_report' %}" method="get">
+            <div class="filter-group" style="display: flex; gap: 10px;">
+                <input type="text" name="url" placeholder="Enter URL to analyze" style="flex: 1;">
+                <button type="submit" class="btn btn-primary">Analyze URL</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row" style="display: flex; gap: 30px; margin-bottom: 30px;">
+    <div class="card" style="flex: 1;">
+        <div class="card-header">
+            <h2>Device Distribution</h2>
+            <button class="btn btn-secondary refresh-chart" data-target="device-chart">Refresh</button>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="device-chart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card" style="flex: 1;">
+        <div class="card-header">
+            <h2>Browser Distribution</h2>
+            <button class="btn btn-secondary refresh-chart" data-target="browser-chart">Refresh</button>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="browser-chart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>User Activity</h2>
+        <button class="btn btn-secondary refresh-table" data-target="user-activity-table">Refresh</button>
+    </div>
+    <div class="card-body">
+        <table class="user-activity-table" id="user-activity-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Last Visit</th>
+                    <th>Sessions</th>
+                    <th>Total Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in user_activity %}
+                <tr>
+                    <td>
+                        {% if user.is_authenticated %}
+                        <a href="{% url 'accounts:user_analytics' user.id %}">{{ user.identifier }}</a>
+                        {% else %}
+                        <a href="{% url 'accounts:user_analytics' 0 %}?session_id={{ user.session_id }}">{{ user.identifier }}</a>
+                        {% endif %}
+                    </td>
+                    <td>{{ user.last_visit }}</td>
+                    <td>{{ user.total_sessions }}</td>
+                    <td>{{ user.total_time|default:'N/A' }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">No user activity found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Define URL patterns as JavaScript variables
+    const userAnalyticsUrlBase = "{% url 'accounts:user_analytics' 0 %}";
+
+    $(document).ready(function() {
+        // Page load charts
+        renderPageViewsChart();
+        renderDeviceChart();
+        renderBrowserChart();
+        
+        // Format durations
+        formatDurations();
+        
+        // Filter form submission
+        $('#filterForm').on('submit', function(e) {
+            const days = $('#days').val();
+            const hours = $('#hours').val();
+            const deviceType = $('#device_type').val();
+            
+            // Update URL with filter parameters
+            updateUrlWithFilters({
+                days: days,
+                hours: hours,
+                device_type: deviceType
+            });
+            
+            // Don't submit if we're just updating the URL
+            if (e.target.tagName.toLowerCase() === 'form') {
+                return true;
+            }
+            return false;
+        });
+        
+        // Refresh charts
+        $('.refresh-chart').on('click', function() {
+            const target = $(this).data('target');
+            
+            if (target === 'page-views-chart') {
+                refreshPageViewsChart();
+            } else if (target === 'device-chart') {
+                refreshDeviceChart();
+            } else if (target === 'browser-chart') {
+                refreshBrowserChart();
+            }
+        });
+        
+        // Refresh tables
+        $('.refresh-table').on('click', function() {
+            const target = $(this).data('target');
+            
+            if (target === 'top-pages-table') {
+                refreshTopPages();
+            } else if (target === 'user-activity-table') {
+                refreshUserActivity();
+            }
+        });
+        
+        // Export button
+        $('#exportBtn').on('click', function() {
+            exportDashboardData();
+        });
+    });
+    
+    let pageViewsChart, deviceChart, browserChart;
+    
+    function renderPageViewsChart() {
+        const ctx = document.getElementById('page-views-chart').getContext('2d');
+        
+        // Parse the data
+        const data = {{ page_views_by_date|safe }};
+        const labels = data.map(item => formatDate(item.date));
+        const values = data.map(item => item.count);
+        
+        pageViewsChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Page Views',
+                    data: values,
+                    backgroundColor: 'rgba(74, 108, 247, 0.5)',
+                    borderColor: 'rgba(74, 108, 247, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function refreshPageViewsChart() {
+        const days = $('#days').val();
+        showLoader('#page-views-chart');
+        
+        $.ajax({
+            url: "{% url 'accounts:refresh_page_views_by_date' %}",
+            data: { days: days },
+            success: function(response) {
+                if (pageViewsChart) {
+                    pageViewsChart.destroy();
+                }
+                
+                const data = response.page_views_by_date;
+                const labels = data.map(item => formatDate(item.date));
+                const values = data.map(item => item.count);
+                
+                const ctx = document.getElementById('page-views-chart').getContext('2d');
+                pageViewsChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Page Views',
+                            data: values,
+                            backgroundColor: 'rgba(74, 108, 247, 0.5)',
+                            borderColor: 'rgba(74, 108, 247, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
+                            }
+                        }
+                    }
+                });
+            },
+            error: function(error) {
+                console.error('Error refreshing page views chart:', error);
+                $('#page-views-chart').html('Error loading chart');
+            }
+        });
+    }
+    
+    function renderDeviceChart() {
+        const ctx = document.getElementById('device-chart').getContext('2d');
+        
+        // Parse the data
+        const data = {{ device_distribution|safe }};
+        const labels = data.map(item => item.device_type);
+        const values = data.map(item => item.count);
+        
+        deviceChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: [
+                        'rgba(74, 108, 247, 0.7)',
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(255, 205, 86, 0.7)',
+                        'rgba(75, 192, 192, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(74, 108, 247, 1)',
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(255, 205, 86, 1)',
+                        'rgba(75, 192, 192, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+    
+    function refreshDeviceChart() {
+        const days = $('#days').val();
+        showLoader('#device-chart');
+        
+        $.ajax({
+            url: "{% url 'accounts:refresh_device_distribution' %}",
+            data: { days: days },
+            success: function(response) {
+                if (deviceChart) {
+                    deviceChart.destroy();
+                }
+                
+                const data = response.device_distribution;
+                const labels = data.map(item => item.device_type);
+                const values = data.map(item => item.count);
+                
+                const ctx = document.getElementById('device-chart').getContext('2d');
+                deviceChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: values,
+                            backgroundColor: [
+                                'rgba(74, 108, 247, 0.7)',
+                                'rgba(255, 99, 132, 0.7)',
+                                'rgba(255, 205, 86, 0.7)',
+                                'rgba(75, 192, 192, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgba(74, 108, 247, 1)',
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(255, 205, 86, 1)',
+                                'rgba(75, 192, 192, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            },
+            error: function(error) {
+                console.error('Error refreshing device chart:', error);
+                $('#device-chart').html('Error loading chart');
+            }
+        });
+    }
+    
+    function renderBrowserChart() {
+        const ctx = document.getElementById('browser-chart').getContext('2d');
+        
+        // Parse the data
+        const data = {{ browser_distribution|safe }};
+        const labels = data.map(item => item.browser);
+        const values = data.map(item => item.count);
+        
+        browserChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: [
+                        'rgba(74, 108, 247, 0.7)',
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(255, 205, 86, 0.7)',
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(153, 102, 255, 0.7)',
+                        'rgba(255, 159, 64, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(74, 108, 247, 1)',
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(255, 205, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+    
+    function refreshBrowserChart() {
+        const days = $('#days').val();
+        showLoader('#browser-chart');
+        
+        $.ajax({
+            url: "{% url 'accounts:refresh_browser_distribution' %}",
+            data: { days: days },
+            success: function(response) {
+                if (browserChart) {
+                    browserChart.destroy();
+                }
+                
+                const data = response.browser_distribution;
+                const labels = data.map(item => item.browser);
+                const values = data.map(item => item.count);
+                
+                const ctx = document.getElementById('browser-chart').getContext('2d');
+                browserChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: values,
+                            backgroundColor: [
+                                'rgba(74, 108, 247, 0.7)',
+                                'rgba(255, 99, 132, 0.7)',
+                                'rgba(255, 205, 86, 0.7)',
+                                'rgba(75, 192, 192, 0.7)',
+                                'rgba(153, 102, 255, 0.7)',
+                                'rgba(255, 159, 64, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgba(74, 108, 247, 1)',
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(255, 205, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            },
+            error: function(error) {
+                console.error('Error refreshing browser chart:', error);
+                $('#browser-chart').html('Error loading chart');
+            }
+        });
+    }
+    
+    function refreshTopPages() {
+        const days = $('#days').val();
+        showLoader('#top-pages-table');
+        
+        $.ajax({
+            url: "{% url 'accounts:refresh_top_pages' %}",
+            data: { days: days },
+            success: function(response) {
+                let html = '';
+                
+                if (response.top_pages.length === 0) {
+                    html = '<tr><td colspan="3">No page views found</td></tr>';
+                } else {
+                    response.top_pages.forEach(function(page) {
+                        html += `
+                            <tr>
+                                <td><a href="{% url 'accounts:page_view_report' %}?url=${encodeURIComponent(page.url)}">${page.path}</a></td>
+                                <td>${page.count}</td>
+                                <td>${page.percentage.toFixed(2)}%</td>
+                            </tr>
+                        `;
+                    });
+                }
+                
+                $('#top-pages-table tbody').html(html);
+            },
+            error: function(error) {
+                console.error('Error refreshing top pages:', error);
+                $('#top-pages-table tbody').html('<tr><td colspan="3">Error loading data</td></tr>');
+            }
+        });
+    }
+    
+    function refreshUserActivity() {
+        const days = $('#days').val();
+        showLoader('#user-activity-table tbody');
+        
+        $.ajax({
+            url: "{% url 'accounts:refresh_user_activity' %}",
+            data: { days: days },
+            success: function(response) {
+                let html = '';
+                
+                if (response.user_activity.length === 0) {
+                    html = '<tr><td colspan="4">No user activity found</td></tr>';
+                } else {
+                    response.user_activity.forEach(function(user) {
+                        let userLink;
+                        if (user.is_authenticated) {
+                            // Construct URL for authenticated user
+                            userLink = `<a href="${userAnalyticsUrlBase.replace('/0/', '/' + user.id + '/')}">${user.identifier}</a>`;
+                        } else {
+                            // Construct URL for anonymous user with session_id
+                            userLink = `<a href="${userAnalyticsUrlBase}?session_id=${user.session_id}">${user.identifier}</a>`;
+                        }
+                        
+                        html += `
+                            <tr>
+                                <td>${userLink}</td>
+                                <td>${formatDateTime(user.last_visit)}</td>
+                                <td>${user.total_sessions}</td>
+                                <td>${user.total_time ? formatDuration(user.total_time) : 'N/A'}</td>
+                            </tr>
+                        `;
+                    });
+                }
+                
+                $('#user-activity-table tbody').html(html);
+            },
+            error: function(error) {
+                console.error('Error refreshing user activity:', error);
+                $('#user-activity-table tbody').html('<tr><td colspan="4">Error loading data</td></tr>');
+            }
+        });
+    }
+    
+    function formatDurations() {
+        // Format the average duration in the summary metrics
+        const avgDuration = $('#avg-duration').text();
+        if (avgDuration !== 'N/A') {
+            const durationSeconds = parseFloat(avgDuration);
+            $('#avg-duration').text(formatDuration(durationSeconds));
+        }
+    }
+    
+    function exportDashboardData() {
+        const days = $('#days').val();
+        
+        $.ajax({
+            url: "{% url 'accounts:export_data' %}",
+            data: { 
+                type: 'summary',
+                days: days
+            },
+            success: function(response) {
+                const data = [response.data];
+                exportToCSV(data, 'analytics_summary.csv');
+            },
+            error: function(error) {
+                console.error('Error exporting data:', error);
+                alert('Error exporting data');
+            }
+        });
+    }
+</script>
+{% endblock %}

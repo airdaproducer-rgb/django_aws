@@ -1,0 +1,132 @@
+<!-- users/accounts/welcome_email.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to AirNationMusic!</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3a86ff;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .welcome-image {
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            margin: 20px auto;
+            display: block;
+            border-radius: 8px;
+        }
+        .feature {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f5f7fa;
+            border-radius: 4px;
+        }
+        .feature-title {
+            color: #3a86ff;
+            margin-bottom: 10px;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #3a86ff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px 0;
+            color: #606060;
+            font-size: 14px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .social {
+            margin: 20px 0;
+        }
+        .social a {
+            display: inline-block;
+            margin: 0 10px;
+            color: #3a86ff;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">AirNationMusic</div>
+        </div>
+        
+        <div class="content">
+            <h1>Welcome to AirNationMusic!</h1>
+            
+            <p>Hi {{ user.username }},</p>
+            
+            <p>Thank you for joining AirNationMusic! We're excited to have you as part of our community of music producers and creators.</p>
+            
+            <div class="feature">
+                <h3 class="feature-title">Audio Production Tools</h3>
+                <p>Access our collection of professional audio software tools designed to enhance your music production workflow.</p>
+            </div>
+            
+            <div class="feature">
+                <h3 class="feature-title">Premium Samples</h3>
+                <p>Explore thousands of high-quality samples, loops, and sound effects to inspire your next track.</p>
+            </div>
+            
+            <div class="feature">
+                <h3 class="feature-title">Learning Resources</h3>
+                <p>Improve your skills with tutorials, courses, and production guides from industry experts.</p>
+            </div>
+            
+            <p>Ready to start creating amazing music? Click the button below to explore our tools:</p>
+            
+            <a href="https://airnationmusic.com/tools" class="button">Get Started</a>
+            
+            <p>If you have any questions or need assistance, feel free to reach out to our support team at support@airnationmusic.com.</p>
+            
+            <p>Happy producing!</p>
+            <p>The AirNationMusic Team</p>
+        </div>
+        
+        <div class="footer">
+            <div class="social">
+                <a href="https://facebook.com/airnationmusic">Facebook</a>
+                <a href="https://twitter.com/airnationmusic">Twitter</a>
+                <a href="https://instagram.com/airnationmusic">Instagram</a>
+            </div>
+            <p>&copy; {% now "Y" %} AirNationMusic. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

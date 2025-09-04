@@ -1,0 +1,153 @@
+{% extends 'users/accounts/base.html' %}
+
+{% block style %}
+<style>
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .profile-links {
+        margin: 20px 0;
+        display: flex;
+        gap: 15px;
+    }
+
+    .profile-links a {
+        text-decoration: none;
+        color: var(--primary-color);
+        font-weight: 500;
+    }
+
+    .light-theme .profile-links a:hover {
+        color: var(--hover-light);
+    }
+
+    .dark-theme .profile-links a:hover {
+        color: var(--hover-dark);
+    }
+
+    .profile-info {
+        background-color: var(--background-light);
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+
+    .dark-theme .profile-info {
+        background-color: var(--sidebar-dark);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .form-group p {
+        margin: 0;
+        padding: 10px;
+        background-color: white;
+        border-radius: 4px;
+    }
+
+    .dark-theme .form-group p {
+        background-color: var(--background-dark);
+        color: var(--text-dark);
+    }
+
+    .verification-status {
+        margin-left: 10px;
+        font-size: 0.9em;
+    }
+
+    .verification-status.verified {
+        color: #28a745;
+    }
+
+    .verification-status.unverified {
+        color: #dc3545;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        padding: 10px 20px;
+        background-color: var(--primary-color);
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        font-weight: 500;
+        transition: background-color 0.2s;
+    }
+
+    .btn:hover {
+        background-color: #3267d6;
+    }
+
+    .profile-initial {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: var(--primary-color);
+        color: white;
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-right: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="header">
+        <h1>
+            {% if user.is_authenticated %}
+                <span class="profile-initial">{{ user.username|slice:":1"|upper }}</span>
+            {% else %}
+                <i class="fas fa-user-circle"></i>
+            {% endif %}
+            Your Profile
+        </h1>
+    </div>
+    <div class="profile-links">
+        {% if user.is_authenticated %}
+            <a href="#">My Saved Apps</a>
+            <a href="#">My Downloads</a>
+        {% endif %}
+    </div>
+    <div class="profile-info">
+        <div class="form-group">
+            <label>Username</label>
+            <p>{{ user.username }}</p>
+        </div>
+        <div class="form-group">
+            <label>Email</label>
+            <p>
+                {{ user.email }}
+                <span class="verification-status {% if user.is_email_verified %}verified{% else %}unverified{% endif %}">
+                    <i class="fas {% if user.is_email_verified %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
+                    {% if user.is_email_verified %}Verified{% else %}Not Verified{% endif %}
+                </span>
+            </p>
+        </div>
+        <div class="form-group">
+            <label>Member since</label>
+            <p>{{ user.registration_date|date:"F j, Y" }}</p>
+        </div>
+    </div>
+    <a href="{% url 'accounts:update_profile' %}" class="btn">
+        <i class="fas fa-edit"></i> Edit Profile
+    </a>
+</div>
+{% endblock %}

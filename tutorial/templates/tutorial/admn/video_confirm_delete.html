@@ -1,0 +1,41 @@
+<!-- tutorial/admn/video_confirm_delete.html -->
+{% extends 'tutorial/admn/base.html' %}
+
+{% block title %}Delete Video - YouTube Admin{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div class="flex justify-between items-center">
+        <h1><i class="fas fa-trash"></i> Delete Video</h1>
+        <a href="{% url 'youtube:video_detail' object.id %}" class="btn">
+            <i class="fas fa-arrow-left"></i> Back to Video
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Confirm Deletion</h2>
+    </div>
+    
+    <div class="mb-4">
+        <p>Are you sure you want to delete the video "<strong>{{ object.title }}</strong>"?</p>
+        <p class="text-danger"><strong>Warning:</strong> This action cannot be undone. All associated data (views, comments, etc.) will also be deleted.</p>
+    </div>
+    
+    <div class="mb-4">
+        <h3>Video Information:</h3>
+        <p><strong>Title:</strong> {{ object.title }}</p>
+        <p><strong>Created:</strong> {{ object.timestamp }}</p>
+        <p><strong>YouTube Link:</strong> <a href="{{ object.youtube_link }}" target="_blank">{{ object.youtube_link }}</a></p>
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        <div class="flex gap-2">
+            <button type="submit" class="btn btn-danger">Yes, Delete</button>
+            <a href="{% url 'youtube:video_detail' object.id %}" class="btn">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

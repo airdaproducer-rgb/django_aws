@@ -1,0 +1,489 @@
+{% extends 'users/analytics/base.html' %}
+{% load analytics_tags %}
+
+
+{% block extra_head %}
+<style>
+    .retention-comparison {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .retention-box {
+        flex: 1;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+    
+    .retention-box h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-size: 1rem;
+        color: var(--gray-700);
+    }
+    
+    .retention-box .value {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+    
+    .this-page {
+        background-color: rgba(74, 108, 247, 0.1);
+        border: 1px solid rgba(74, 108, 247, 0.3);
+    }
+    
+    .site-average {
+        background-color: rgba(255, 99, 132, 0.1);
+        border: 1px solid rgba(255, 99, 132, 0.3);
+    }
+    
+    .comparison {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        font-weight: bold;
+    }
+    
+    .better {
+        color: #28a745;
+    }
+    
+    .worse {
+        color: #dc3545;
+    }
+    
+    .referrer-table td:nth-child(2) {
+        text-align: right;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="page-header">
+    <h1>Page View Report</h1>
+    <button id="exportBtn" class="btn btn-export">Export CSV</button>
+</div>
+
+<div class="filters">
+    <form id="searchForm" action="{% url 'accounts:page_view_report' %}" method="get">
+        <div class="filter-group" style="flex: 2;">
+            <label for="url">URL</label>
+            <input type="text" name="url" id="url" value="{{ url }}" placeholder="Enter URL to analyze" required>
+        </div>
+        <div class="filter-group">
+            <label for="days">Date Range</label>
+            <select name="days" id="days">
+                <option value="1" {% if days == 1 %}selected{% endif %}>Last 24 hours</option>
+                <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
+                <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
+                <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="hours">Time Filter</label>
+            <select name="hours" id="hours">
+                <option value="0" {% if hours == 0 %}selected{% endif %}>All Time</option>
+                <option value="1" {% if hours == 1 %}selected{% endif %}>Last 1 hour</option>
+                <option value="3" {% if hours == 3 %}selected{% endif %}>Last 3 hours</option>
+                <option value="6" {% if hours == 6 %}selected{% endif %}>Last 6 hours</option>
+                <option value="12" {% if hours == 12 %}selected{% endif %}>Last 12 hours</option>
+                <option value="24" {% if hours == 24 %}selected{% endif %}>Last 24 hours</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="user_type">User Type</label>
+            <select name="user_type" id="user_type">
+                <option value="all" {% if user_type == 'all' %}selected{% endif %}>All Users</option>
+                <option value="authenticated" {% if user_type == 'authenticated' %}selected{% endif %}>Authenticated</option>
+                <option value="anonymous" {% if user_type == 'anonymous' %}selected{% endif %}>Anonymous</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Analyze</button>
+    </form>
+</div>
+
+{% if error %}
+<div class="alert alert-danger">
+    {{ error }}
+</div>
+{% elif not report %}
+<div class="alert alert-info">
+    Enter a URL to analyze page views.
+</div>
+{% else %}
+
+<div class="card">
+    <div class="card-header">
+        <h2>Page Information</h2>
+    </div>
+    <div class="card-body">
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <h3>URL</h3>
+                <div class="value" style="font-size: 1rem;">{{ report.url }}</div>
+            </div>
+            <div class="metric-card">
+                <h3>Page Title</h3>
+                <div class="value" style="font-size: 1rem;">{{ report.page_title }}</div>
+            </div>
+            <div class="metric-card">
+                <h3>Total Views</h3>
+                <div class="value">{{ report.total_views }}</div>
+            </div>
+            <div class="metric-card">
+                <h3>Unique Users</h3>
+                <div class="value">{{ report.unique_users }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Retention Comparison</h2>
+    </div>
+    <div class="card-body">
+        <div class="retention-comparison">
+            <div class="retention-box this-page">
+                <h3>This Page Avg. Retention Time</h3>
+                <div class="value" id="page-retention">{{ report.avg_retention }}</div>
+            </div>
+            <div class="comparison">
+                {% if report.avg_retention and report.site_avg_retention %}
+                    {% if report.avg_retention > report.site_avg_retention %}
+                        <span class="better">+{{ report.avg_retention|subtract:report.site_avg_retention|floatformat:0 }}%</span>
+                    {% else %}
+                        <span class="worse">-{{ report.site_avg_retention|subtract:report.avg_retention|floatformat:0 }}%</span>
+                    {% endif %}
+                {% else %}
+                    <span>N/A</span>
+                {% endif %}
+            </div>
+            <div class="retention-box site-average">
+                <h3>Site Avg. Retention Time</h3>
+                <div class="value" id="site-retention">{{ report.site_avg_retention }}</div>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <canvas id="retention-comparison-chart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="row" style="display: flex; gap: 30px; margin-bottom: 30px;">
+    <div class="card" style="flex: 1;">
+        <div class="card-header">
+            <h2>Page Views Over Time</h2>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="page-views-chart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card" style="flex: 1;">
+        <div class="card-header">
+            <h2>Device Types</h2>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="device-chart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Top Referrers</h2>
+    </div>
+    <div class="card-body">
+        <table class="referrer-table">
+            <thead>
+                <tr>
+                    <th>Referrer</th>
+                    <th>Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for referrer in report.top_referrers %}
+                <tr>
+                    <td>{{ referrer.referrer }}</td>
+                    <td>{{ referrer.count }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2">No referrers found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Page Visits</h2>
+    </div>
+    <div class="card-body">
+        <table>
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Timestamp</th>
+                    <th>Referrer</th>
+                    <th>Device</th>
+                    <th>Browser</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for visit in page_visits %}
+                <tr>
+                    <td>
+                        {% if visit.user %}
+                        <a href="{% url 'accounts:user_analytics' visit.user.id %}">{{ visit.user.email }}</a>
+                        {% else %}
+                        <a href="{% url 'accounts:user_analytics' 0 %}?session_id={{ visit.session_id }}">Anonymous ({{ visit.session_id|truncatechars:8 }})</a>
+                        {% endif %}
+                    </td>
+                    <td>{{ visit.timestamp }}</td>
+                    <td>{{ visit.referrer|default:'-'|truncatechars:30 }}</td>
+                    <td>{{ visit.device_type }}</td>
+                    <td>{{ visit.browser }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">No page visits found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="pagination">
+            <span class="step-links">
+                {% if page_visits.has_previous %}
+                    <a href="?url={{ url|urlencode }}&days={{ days }}&hours={{ hours }}&user_type={{ user_type }}&page=1">&laquo; first</a>
+                    <a href="?url={{ url|urlencode }}&days={{ days }}&hours={{ hours }}&user_type={{ user_type }}&page={{ page_visits.previous_page_number }}">previous</a>
+                {% endif %}
+        
+                <span class="current">
+                    Page {{ page_visits.number }} of {{ page_visits.paginator.num_pages }}.
+                </span>
+        
+                {% if page_visits.has_next %}
+                    <a href="?url={{ url|urlencode }}&days={{ days }}&hours={{ hours }}&user_type={{ user_type }}&page={{ page_visits.next_page_number }}">next</a>
+                    <a href="?url={{ url|urlencode }}&days={{ days }}&hours={{ hours }}&user_type={{ user_type }}&page={{ page_visits.paginator.num_pages }}">last &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    $(document).ready(function() {
+        {% if report %}
+        // Format retention times
+        formatRetentionTimes();
+        
+        // Page load charts
+        renderPageViewsChart();
+        renderDeviceChart();
+        renderRetentionComparisonChart();
+        {% endif %}
+        
+        // Filter form submission
+        $('#searchForm').on('submit', function(e) {
+            const url = $('#url').val();
+            if (!url) {
+                e.preventDefault();
+                alert('Please enter a URL to analyze');
+            }
+        });
+        
+        // Export button
+        $('#exportBtn').on('click', function() {
+            exportPageData();
+        });
+    });
+    
+    {% if report %}
+    function formatRetentionTimes() {
+        // Format page retention time
+        const pageRetention = $('#page-retention').text();
+        if (pageRetention && pageRetention !== 'None') {
+            const durationSeconds = parseFloat(pageRetention);
+            $('#page-retention').text(formatDuration(durationSeconds));
+        } else {
+            $('#page-retention').text('N/A');
+        }
+        
+        // Format site average retention time
+        const siteRetention = $('#site-retention').text();
+        if (siteRetention && siteRetention !== 'None') {
+            const durationSeconds = parseFloat(siteRetention);
+            $('#site-retention').text(formatDuration(durationSeconds));
+        } else {
+            $('#site-retention').text('N/A');
+        }
+    }
+    
+    function renderPageViewsChart() {
+        const ctx = document.getElementById('page-views-chart').getContext('2d');
+        
+        // Group page visits by date
+        const pageVisits = {{ report.page_visits|safe }};
+        const visitsByDate = {};
+        
+        pageVisits.forEach(visit => {
+            const date = new Date(visit.timestamp).toLocaleDateString();
+            visitsByDate[date] = (visitsByDate[date] || 0) + 1;
+        });
+        
+        const labels = Object.keys(visitsByDate);
+        const data = Object.values(visitsByDate);
+        
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Page Views',
+                    data: data,
+                    backgroundColor: 'rgba(74, 108, 247, 0.5)',
+                    borderColor: 'rgba(74, 108, 247, 1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function renderDeviceChart() {
+        const ctx = document.getElementById('device-chart').getContext('2d');
+        
+        // Group page visits by device type
+        const pageVisits = {{ report.page_visits|safe }};
+        const deviceCounts = {};
+        
+        pageVisits.forEach(visit => {
+            deviceCounts[visit.device_type] = (deviceCounts[visit.device_type] || 0) + 1;
+        });
+        
+        const labels = Object.keys(deviceCounts);
+        const data = Object.values(deviceCounts);
+        
+        const chart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: [
+                        'rgba(74, 108, 247, 0.7)',
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(255, 205, 86, 0.7)',
+                        'rgba(75, 192, 192, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(74, 108, 247, 1)',
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(255, 205, 86, 1)',
+                        'rgba(75, 192, 192, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+    
+    function renderRetentionComparisonChart() {
+        const ctx = document.getElementById('retention-comparison-chart').getContext('2d');
+        
+        // Get retention data
+        const pageRetention = parseFloat('{{ report.avg_retention }}') || 0;
+        const siteRetention = parseFloat('{{ report.site_avg_retention }}') || 0;
+        
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['This Page', 'Site Average'],
+                datasets: [{
+                    label: 'Retention Time (seconds)',
+                    data: [pageRetention, siteRetention],
+                    backgroundColor: [
+                        'rgba(74, 108, 247, 0.5)',
+                        'rgba(255, 99, 132, 0.5)'
+                    ],
+                    borderColor: [
+                        'rgba(74, 108, 247, 1)',
+                        'rgba(255, 99, 132, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+    
+    function exportPageData() {
+        // We'll generate a CSV from the page visit data
+        const pageVisits = {{ report.page_visits|safe }};
+        
+        const data = pageVisits.map(visit => {
+            return {
+                'url': visit.url,
+                'page_title': visit.page_title || '',
+                'timestamp': new Date(visit.timestamp).toLocaleString(),
+                'user': visit.user ? visit.user.email : 'Anonymous',
+                'session_id': visit.session_id,
+                'referrer': visit.referrer || '',
+                'device_type': visit.device_type,
+                'browser': visit.browser
+            };
+        });
+        
+        exportToCSV(data, 'page_view_report.csv');
+    }
+    {% endif %}
+</script>
+{% endblock %}

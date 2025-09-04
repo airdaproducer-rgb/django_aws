@@ -1,0 +1,280 @@
+<!-- templates/users/analytics/app_analytics.html -->
+{% extends 'users/analytics/base.html' %}
+
+{% block extra_head %}
+<style>
+    .app-metrics-table td:nth-child(2),
+    .app-metrics-table td:nth-child(3),
+    .app-metrics-table td:nth-child(4) {
+        text-align: right;
+    }
+    
+    .highlight {
+        background-color: rgba(74, 108, 247, 0.1);
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="page-header">
+    <h1>App Analytics</h1>
+    <button id="exportBtn" class="btn btn-export">Export CSV</button>
+</div>
+
+<div class="filters">
+    <form id="filterForm" method="get">
+        <div class="filter-group">
+            <label for="days">Date Range</label>
+            <select name="days" id="days">
+                <option value="1" {% if days == 1 %}selected{% endif %}>Last 24 hours</option>
+                <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
+                <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
+                <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="hours">Time Filter</label>
+            <select name="hours" id="hours">
+                <option value="0" {% if hours == 0 %}selected{% endif %}>All Time</option>
+                <option value="1" {% if hours == 1 %}selected{% endif %}>Last 1 hour</option>
+                <option value="3" {% if hours == 3 %}selected{% endif %}>Last 3 hours</option>
+                <option value="6" {% if hours == 6 %}selected{% endif %}>Last 6 hours</option>
+                <option value="12" {% if hours == 12 %}selected{% endif %}>Last 12 hours</option>
+                <option value="24" {% if hours == 24 %}selected{% endif %}>Last 24 hours</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="device_type">Device Type</label>
+            <select name="device_type" id="device_type">
+                <option value="" {% if not device_type %}selected{% endif %}>All Devices</option>
+                <option value="desktop" {% if device_type == 'desktop' %}selected{% endif %}>Desktop</option>
+                <option value="mobile" {% if device_type == 'mobile' %}selected{% endif %}>Mobile</option>
+                <option value="tablet" {% if device_type == 'tablet' %}selected{% endif %}>Tablet</option>
+                <option value="unknown" {% if device_type == 'unknown' %}selected{% endif %}>Unknown</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Apply Filters</button>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>App Visitor Counts</h2>
+    </div>
+    <div class="card-body">
+        <div class="chart-container">
+            <canvas id="app-visitors-chart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>App Page Views Over Time</h2>
+    </div>
+    <div class="card-body">
+        <div class="chart-container">
+            <canvas id="app-page-views-chart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>App Details</h2>
+        <div>
+            {% if most_visited %}
+            <span class="badge" style="background-color: #28a745; color: white; padding: 5px 10px; border-radius: 4px; margin-right: 10px;">
+                Most Visited: {{ most_visited.name }} ({{ most_visited.visitors }} visitors)
+            </span>
+            {% endif %}
+            
+            {% if least_visited %}
+            <span class="badge" style="background-color: #dc3545; color: white; padding: 5px 10px; border-radius: 4px;">
+                Least Visited: {{ least_visited.name }} ({{ least_visited.visitors }} visitors)
+            </span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="card-body">
+        <table class="app-metrics-table" id="app-metrics-table">
+            <thead>
+                <tr>
+                    <th>App Name</th>
+                    <th>Visitors</th>
+                    <th>Page Views</th>
+                    <th>Avg. Retention Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in app_metrics %}
+                <tr {% if app == most_visited or app == least_visited %}class="highlight"{% endif %}>
+                    <td>{{ app.name }}</td>
+                    <td>{{ app.visitors }}</td>
+                    <td>{{ app.page_views }}</td>
+                    <td>{{ app.retention_time }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">No app data available</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    $(document).ready(function() {
+        // Page load charts
+        renderAppVisitorsChart();
+        renderAppPageViewsChart();
+        
+        // Format durations
+        formatRetentionTimes();
+        
+        // Filter form submission
+        $('#filterForm').on('submit', function(e) {
+            const days = $('#days').val();
+            const hours = $('#hours').val();
+            const deviceType = $('#device_type').val();
+            
+            // Update URL with filter parameters
+            updateUrlWithFilters({
+                days: days,
+                hours: hours,
+                device_type: deviceType
+            });
+            
+            // Don't submit if we're just updating the URL
+            if (e.target.tagName.toLowerCase() === 'form') {
+                return true;
+            }
+            return false;
+        });
+        
+        // Export button
+        $('#exportBtn').on('click', function() {
+            exportAppData();
+        });
+    });
+    
+    function renderAppVisitorsChart() {
+        const ctx = document.getElementById('app-visitors-chart').getContext('2d');
+        
+        // Parse the data
+        const appMetrics = {{ app_metrics|safe }};
+        const labels = appMetrics.map(app => app.name);
+        const visitors = appMetrics.map(app => app.visitors);
+        
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Visitors',
+                    data: visitors,
+                    backgroundColor: 'rgba(74, 108, 247, 0.5)',
+                    borderColor: 'rgba(74, 108, 247, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function renderAppPageViewsChart() {
+        const ctx = document.getElementById('app-page-views-chart').getContext('2d');
+        
+        // Parse the data
+        const appMetrics = {{ app_metrics|safe }};
+        const labels = appMetrics.map(app => app.name);
+        const pageViews = appMetrics.map(app => app.page_views);
+        
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Page Views',
+                    data: pageViews,
+                    backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function formatRetentionTimes() {
+        // Format retention times in the table
+        $('#app-metrics-table tbody tr').each(function() {
+            const retentionCell = $(this).find('td:nth-child(4)');
+            const retentionTime = retentionCell.text();
+            
+            if (retentionTime && retentionTime !== '0:00:00') {
+                // Parse the time format (HH:MM:SS)
+                const parts = retentionTime.split(':');
+                if (parts.length === 3) {
+                    const hours = parseInt(parts[0]);
+                    const minutes = parseInt(parts[1]);
+                    const seconds = parseInt(parts[2]);
+                    
+                    const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+                    retentionCell.text(formatDuration(totalSeconds));
+                }
+            } else {
+                retentionCell.text('N/A');
+            }
+        });
+    }
+    
+    function exportAppData() {
+        const days = $('#days').val();
+        
+        $.ajax({
+            url: "{% url 'accounts:export_data' %}",
+            data: { 
+                type: 'app_metrics',
+                days: days
+            },
+            success: function(response) {
+                exportToCSV(response.data, 'app_metrics.csv');
+            },
+            error: function(error) {
+                console.error('Error exporting data:', error);
+                alert('Error exporting data');
+            }
+        });
+    }
+</script>
+{% endblock %}

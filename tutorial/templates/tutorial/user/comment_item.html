@@ -1,0 +1,15 @@
+<div class="comment">
+    <div class="comment-header">
+        <div class="comment-author">
+            {% if comment.is_anonymous %}
+                Anonymous
+            {% else %}
+                {{ comment.name }}
+            {% endif %}
+        </div>
+        <div class="comment-date">{{ comment.created_at|date:"F d, Y" }}</div>
+    </div>
+    <div class="comment-content">
+        {{ comment.content|linebreaks }}
+    </div>
+</div>

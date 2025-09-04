@@ -1,0 +1,281 @@
+{% extends 'software/base.html' %}
+{% block style %}
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --light-bg: #f5f7fa;
+            --text-color: #34495e;
+            --light-text: #ecf0f1;
+            --border-color: #dce0e4;
+            --success-color: #2ecc71;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--light-bg);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            margin: 0 auto;
+            padding: 20px;
+            max-width: 600px;
+        }
+
+        header {
+            background-color: var(--secondary-color);
+            color: var(--light-text);
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+        
+        .intro-text {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .permission-form {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .login-message {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .login-message p {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+        }
+
+        .form-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            vertical-align: middle;
+        }
+
+        .submit-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .submit-button:hover {
+            background-color: #2980b9;
+        }
+
+        .login-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+            margin-right: 10px;
+        }
+
+        .login-button:hover {
+            background-color: #2980b9;
+        }
+
+        .back-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: white;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+
+        .back-button:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        /* New styles for feedback message */
+        .feedback-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--success-color);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            display: none;
+            text-align: center;
+            max-width: 80%;
+        }
+        
+        .feedback-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <header>
+        <h3>Permission Settings</h3>
+    </header>
+
+    <div class="container">
+        {% if show_login_message %}
+            <div class="login-message">
+                <p>Please login to access permission settings.</p>
+                <a href="{% url 'accounts:login' %}" class="login-button">Login</a>
+                <a href="{% url 'software:app_user_list' %}" class="back-button">Back to Apps</a>
+            </div>
+        {% else %}
+            <div class="intro-text">
+                <p>By enabling these permissions, you grant us access to save your downloads and favorited items, allowing us to provide personalized recommendations and a better user experience. Your privacy is important to us, and all data is stored securely.</p>
+            </div>
+            
+            <form class="permission-form" id="permission-form" method="POST" action="{% url 'accounts:permission_settings' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="allow_saving">Allow Saving Apps</label>
+                    <input type="checkbox" id="allow_saving" name="allow_saving" class="permission-checkbox" {% if permission.allow_saving %}checked{% endif %}>
+                    <p>Enable this to save apps to your favorites list.</p>
+                </div>
+                <div class="form-group">
+                    <label for="allow_download_tracking">Allow Download Tracking</label>
+                    <input type="checkbox" id="allow_download_tracking" name="allow_download_tracking" class="permission-checkbox" {% if permission.allow_download_tracking %}checked{% endif %}>
+                    <p>Enable this to track your download history.</p>
+                </div>
+                <button type="submit" class="submit-button">Save Permissions</button>
+            </form>
+            
+            <!-- Feedback elements -->
+            <div class="feedback-overlay" id="feedback-overlay"></div>
+            <div class="feedback-message" id="feedback-message"></div>
+        {% endif %}
+    </div>
+    
+    {% if not show_login_message %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Handle form submission with AJAX
+            $('#permission-form').on('submit', function(e) {
+                e.preventDefault();
+                
+                $.ajax({
+                    url: "{% url 'accounts:permission_settings' %}",
+                    type: "POST",
+                    data: $(this).serialize(),
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+                    success: function(response) {
+                        showFeedback(response.message);
+                    },
+                    error: function() {
+                        showFeedback("Something went wrong. Please try again.");
+                    }
+                });
+            });
+            
+            // Also trigger feedback when checkbox is changed
+            $('.permission-checkbox').on('change', function() {
+                let message = "";
+                let checkboxId = $(this).attr('id');
+                let isChecked = $(this).is(':checked');
+                
+                if (checkboxId === 'allow_saving') {
+                    message = isChecked ? 
+                        "App saving enabled! You can now save your favorite apps." : 
+                        "App saving disabled. You will no longer be able to save apps.";
+                } else if (checkboxId === 'allow_download_tracking') {
+                    message = isChecked ? 
+                        "Download tracking enabled! We'll keep track of your download history." : 
+                        "Download tracking disabled. Your download history will no longer be tracked.";
+                }
+                
+                // Auto-submit form when checkbox changes
+                $.ajax({
+                    url: "{% url 'accounts:permission_settings' %}",
+                    type: "POST",
+                    data: $('#permission-form').serialize(),
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+                    success: function() {
+                        showFeedback(message);
+                    },
+                    error: function() {
+                        showFeedback("Something went wrong. Please try again.");
+                    }
+                });
+            });
+            
+            function showFeedback(message) {
+                $('#feedback-message').text(message).fadeIn();
+                $('#feedback-overlay').fadeIn();
+                
+                setTimeout(function() {
+                    $('#feedback-message').fadeOut();
+                    $('#feedback-overlay').fadeOut();
+                }, 3000);
+            }
+        });
+    </script>
+    {% endif %}
+{% endblock %}

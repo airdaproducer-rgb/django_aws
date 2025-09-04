@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ document.title }} - PDF Text Extraction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .document-meta {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .meta-item {
+            margin-bottom: 10px;
+        }
+        .meta-label {
+            font-weight: bold;
+            display: inline-block;
+            width: 150px;
+        }
+        .status-pending {
+            color: #f0ad4e;
+        }
+        .status-processing {
+            color: #5bc0de;
+        }
+        .status-completed {
+            color: #5cb85c;
+        }
+        .status-failed {
+            color: #d9534f;
+        }
+        .extracted-text {
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .pending-message {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .links {
+            margin-top: 20px;
+        }
+        .links a {
+            color: #0275d8;
+            text-decoration: none;
+        }
+        .links a:hover {
+            text-decoration: underline;
+        }
+        .btn {
+            display: inline-block;
+            padding: 8px 12px;
+            background: #0275d8;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .btn:hover {
+            background: #0269c2;
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: #0275d8;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .countdown {
+            font-weight: bold;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ document.title }}</h1>
+    
+    <div class="document-meta">
+        <div class="meta-item">
+            <span class="meta-label">Uploaded:</span>
+            {{ document.created_at|date:"F j, Y, g:i a" }}
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">Extraction Status:</span>
+            <span id="status-display" class="status-{{ document.extraction_status }}">
+                {{ document.extraction_status|title }}
+            </span>
+            {% if document.extraction_status == 'pending' or document.extraction_status == 'processing' %}
+                <span class="loading-spinner"></span>
+            {% endif %}
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">Scheduled Delay:</span>
+            {{ document.delay.total_seconds }} seconds
+        </div>
+    </div>
+    
+    <div id="content-area">
+        {% if document.extraction_status == 'completed' %}
+            <h2>Extracted Text:</h2>
+            <div class="extracted-text">{{ document.extracted_text }}</div>
+        {% elif document.extraction_status == 'failed' %}
+            <h2>Extraction Failed:</h2>
+            <div class="extracted-text">{{ document.extracted_text }}</div>
+        {% else %}
+            <div class="pending-message">
+                <p>Text extraction is <span id="status-message">{{ document.extraction_status }}</span>.</p>
+                <p>This page will automatically update when extraction is complete. 
+                   Refreshing in <span id="countdown" class="countdown">15</span> seconds.</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="links">
+        <a href="{% url 'document-list' %}" class="btn">Back to Document List</a>
+    </div>
+
+    {% if document.extraction_status == 'pending' or document.extraction_status == 'processing' %}
+    <script>
+        // Auto refresh functionality for pending or processing documents
+        const documentId = "{{ document.id }}";
+        let countdownValue = 15;
+        const countdownElement = document.getElementById('countdown');
+        
+        // Set up countdown timer
+        const countdownInterval = setInterval(() => {
+            countdownValue--;
+            if (countdownElement) {
+                countdownElement.textContent = countdownValue;
+            }
+            
+            if (countdownValue <= 0) {
+                clearInterval(countdownInterval);
+                checkStatus();
+            }
+        }, 1000);
+        
+        // Function to check status
+        function checkStatus() {
+            fetch(`/pdf/api/document-status/${documentId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status !== "{{ document.extraction_status }}") {
+                        // Status has changed, reload the page
+                        window.location.reload();
+                    } else if (data.status === "pending" || data.status === "processing") {
+                        // Still pending or processing, reset countdown
+                        countdownValue = 15;
+                        const countdownInterval = setInterval(() => {
+                            countdownValue--;
+                            if (countdownElement) {
+                                countdownElement.textContent = countdownValue;
+                            }
+                            
+                            if (countdownValue <= 0) {
+                                clearInterval(countdownInterval);
+                                checkStatus();
+                            }
+                        }, 1000);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking document status:', error);
+                    // On error, still try again
+                    setTimeout(checkStatus, 15000);
+                });
+        }
+    </script>
+    {% endif %}
+</body>
+</html>

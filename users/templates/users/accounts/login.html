@@ -1,0 +1,623 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - AIR Nation Music</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3a0ca3;
+            --secondary: #f72585;
+            --accent: #4cc9f0;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --gray: #e9ecef;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.7;
+        }
+
+        .login-container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Info Section Styles */
+        .info-section {
+            flex: 1;
+            background: linear-gradient(135deg, rgba(58, 12, 163, 0.95), rgba(247, 37, 133, 0.9)), url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxkZWZzPjxwYXR0ZXJuIGlkPSJwYXR0ZXJuIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHBhdHRlcm5UcmFuc2Zvcm09InJvdGF0ZSg0NSkiPjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjA1KSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3QgZmlsbD0idHJhbnNwYXJlbnQiIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiLz48cmVjdCBmaWxsPSJ1cmwoI3BhdHRlcm4pIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIi8+PC9zdmc+');
+            color: white;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .info-section::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 70%;
+            height: 70%;
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjgwIiBmaWxsPSJub25lIiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIgc3Ryb2tlLXdpZHRoPSIyIi8+PGNpcmNsZSBjeD0iMTAwIiBjeT0iMTAwIiByPSI0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMSkiIHN0cm9rZS13aWR0aD0iMiIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iMjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIiBzdHJva2Utd2lkdGg9IjIiLz48L3N2Zz4=');
+            background-repeat: no-repeat;
+            background-size: contain;
+            background-position: bottom right;
+            opacity: 0.2;
+        }
+
+        .logo-wrapper {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .logo {
+            font-size: 1.6rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo i {
+            margin-right: 8px;
+            font-size: 1.8rem;
+        }
+
+        .info-content {
+            max-width: 450px;
+            max-height: 50vh;
+            overflow: hidden;
+        }
+
+        .info-title {
+            font-size: 2rem;
+            line-height: 1.2;
+            margin-bottom: 0.8rem;
+            font-weight: 800;
+        }
+
+        .highlight {
+            display: inline-block;
+            background: var(--accent);
+            color: var(--dark);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-weight: 600;
+            margin: 0 0.2rem;
+        }
+
+        .info-features {
+            margin: 1rem 0;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.6rem;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-item:hover {
+            transform: translateX(8px);
+        }
+
+        .feature-icon {
+            width: 30px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .image-slider {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 480px); /* Adjust based on content above */
+            overflow: hidden;
+        }
+
+        .image-slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            object-fit: cover;
+        }
+
+        .image-slide.active {
+            opacity: 0.8;
+        }
+
+        .image-slide.from-left {
+            transform: translateX(-100%);
+        }
+
+        .image-slide.from-right {
+            transform: translateX(100%);
+        }
+
+        .image-slide.active.from-left,
+        .image-slide.active.from-right {
+            transform: translateX(0);
+        }
+
+        /* Login Form Styles */
+        .form-section {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+            height: 100vh;
+        }
+
+        .login-form-container {
+            width: 100%;
+            max-width: 380px;
+            padding: 1.8rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            position: relative;
+        }
+
+        .welcome-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome-header h2 {
+            font-size: 1.6rem;
+            color: var(--primary);
+            margin-right: 8px;
+        }
+
+        .waving-hand {
+            font-size: 1.6rem;
+            animation: wave 2.5s infinite;
+            transform-origin: 70% 70%;
+            display: inline-block;
+        }
+
+        @keyframes wave {
+            0% { transform: rotate(0deg); }
+            10% { transform: rotate(14deg); }
+            20% { transform: rotate(-8deg); }
+            30% { transform: rotate(14deg); }
+            40% { transform: rotate(-4deg); }
+            50% { transform: rotate(10deg); }
+            60% { transform: rotate(0deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 1.2rem;
+            font-size: 0.9rem;
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #7f8c8d;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px 35px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            outline: none;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .input-group input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(58, 12, 163, 0.1);
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #7f8c8d;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .toggle-password:hover {
+            color: var(--primary);
+        }
+
+        .error-message {
+            background: #ff5252;
+            color: white;
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(58, 12, 163, 0.2);
+        }
+
+        .spinner {
+            display: none;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .links {
+            text-align: center;
+            margin-top: 1.2rem;
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .links a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .links a:hover {
+            color: var(--secondary);
+            text-decoration: underline;
+        }
+
+        .show-login-btn {
+            display: none;
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            padding: 0.8rem;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .show-login-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* Mobile Styles */
+        @media (max-width: 992px) {
+            .login-container {
+                flex-direction: column;
+            }
+
+            .info-section {
+                flex: none;
+                height: 100vh;
+                padding: 1.2rem;
+                justify-content: flex-start;
+            }
+
+            .form-section {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 1000;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .form-section.show {
+                display: flex;
+                animation: fadeIn 0.3s ease;
+            }
+
+            .login-form-container {
+                max-width: 85%;
+                position: relative;
+                transform: scale(0.8);
+                animation: popup 0.3s ease forwards;
+            }
+
+            .show-login-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+
+            @keyframes popup {
+                from { transform: scale(0.8); opacity: 0; }
+                to { transform: scale(1); opacity: 1; }
+            }
+
+            .info-title {
+                font-size: 1.6rem;
+            }
+
+            .info-content {
+                max-height: 40vh;
+            }
+
+            .image-slider {
+                height: calc(100% - 200px);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .info-section {
+                padding: 1rem;
+            }
+
+            .info-title {
+                font-size: 1.4rem;
+            }
+
+            .login-form-container {
+                padding: 1.2rem;
+            }
+
+            .image-slider {
+                height: calc(100% - 410px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <!-- Info Section -->
+        <div class="info-section">
+            <div class="logo-wrapper">
+                <div class="logo">
+                    <i class="fas fa-music"></i>
+                    <span>AIR Nation Music</span>
+                </div>
+            </div>
+
+            <div class="info-content">
+                <h1 class="info-title">Empowering Music Creators Worldwide</h1>
+                <p>
+                    AIR Nation Music provides <span class="highlight">free</span> music production tools,
+                    <span class="highlight">AI-powered</span> software, and expert resources for creators of all levels.
+                </p>
+
+                <div class="info-features">
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-sliders-h"></i>
+                        </div>
+                        <div>Free Premium-quality VSTs, DAWs & Utilities</div>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div>AI-powered Mastering & Sound Design Tools</div>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-drum"></i>
+                        </div>
+                        <div>Royalty-free Samples, Loops & Sound Packs</div>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <div>Expert Tutorials & Production Guides</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-slider">
+                {% for i in "123456789" %}
+                    {% if i|add:0 < 7 %}
+                        <img src="{% static 'home/home-'|add:i|add:'.png' %}" alt="Sound Visualization" class="image-slide {% if forloop.counter0|divisibleby:2 %}from-left{% else %}from-right{% endif %}">
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Login Form Section -->
+        <div class="form-section" id="formSection">
+            <div class="login-form-container">
+                <div class="welcome-header">
+                    <h2>Welcome Back</h2>
+                    <span class="waving-hand">👋</span>
+                </div>
+                <p class="subtitle">Login to access your AIR Nation account</p>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="error-message">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="post" id="loginForm" action="{% url 'accounts:login' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.GET.next|default:'software:app_user_list' }}">
+
+                    <div class="input-group">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" name="email" placeholder="Email address" required>
+                    </div>
+
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" name="password" id="password" placeholder="Password" required>
+                        <i class="fas fa-eye toggle-password" id="togglePassword"></i>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        <div class="spinner" id="spinner"></div>
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Sign In</span>
+                    </button>
+                </form>
+
+                <div class="links">
+                    <a href="{% url 'password-reset' %}">Forgot Password?</a>
+                    <span> | </span>
+                    <a href="{% url 'accounts:register' %}">Create Account</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Toggle Button -->
+        <div class="show-login-btn" id="showLoginBtn">
+            <i class="fas fa-sign-in-alt"></i>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const togglePassword = document.getElementById('togglePassword');
+            const password = document.getElementById('password');
+            const loginForm = document.getElementById('loginForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const spinner = document.getElementById('spinner');
+            const formSection = document.getElementById('formSection');
+            const showLoginBtn = document.getElementById('showLoginBtn');
+            const slides = document.querySelectorAll('.image-slide');
+
+            // Toggle password visibility
+            if (togglePassword && password) {
+                togglePassword.addEventListener('click', function() {
+                    const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                    password.setAttribute('type', type);
+                    this.classList.toggle('fa-eye');
+                    this.classList.toggle('fa-eye-slash');
+                });
+            }
+
+            // Show spinner on form submit
+            if (loginForm && spinner) {
+                loginForm.addEventListener('submit', function() {
+                    spinner.style.display = 'block';
+                    submitBtn.querySelector('span').style.marginLeft = '10px';
+                });
+            }
+
+            // Toggle login form on mobile
+            if (showLoginBtn && formSection) {
+                showLoginBtn.addEventListener('click', function() {
+                    formSection.classList.toggle('show');
+                    this.innerHTML = formSection.classList.contains('show') 
+                        ? '<i class="fas fa-times"></i>'
+                        : '<i class="fas fa-sign-in-alt"></i>';
+                });
+            }
+
+            // Image slider
+            let currentSlide = 0;
+            function showSlide(index) {
+                slides.forEach((slide, i) => {
+                    slide.classList.toggle('active', i === index);
+                });
+            }
+
+            function nextSlide() {
+                currentSlide = (currentSlide + 1) % slides.length;
+                showSlide(currentSlide);
+            }
+
+            showSlide(currentSlide);
+            setInterval(nextSlide, 3000);
+
+            // Fade-in animation
+            const elements = document.querySelectorAll('.info-content, .login-form-container');
+            elements.forEach(element => {
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(20px)';
+                element.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                
+                setTimeout(() => {
+                    element.style.opacity = '1';
+                    element.style.transform = 'translateY(0)';
+                }, 300);
+            });
+        });
+    </script>
+</body>
+</html>

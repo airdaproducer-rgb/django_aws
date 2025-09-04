@@ -1,0 +1,206 @@
+<!-- tutorial/admn/video_list.html -->
+{% extends 'tutorial/admn/base.html' %}
+
+{% block title %}Videos - YouTube Admin{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1><i class="fas fa-video"></i> Video Management</h1>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Video Controls</h2>
+    </div>
+    
+    <div class="flex justify-between items-center mb-4">
+        <a href="{% url 'youtube:video_create' %}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Add New Video
+        </a>
+        
+        <form action="{% url 'youtube:video_list' %}" method="get" class="search-box">
+            <input type="text" name="search" class="form-control" placeholder="Search videos..." value="{{ search_query }}">
+            <button type="submit" class="btn"><i class="fas fa-search"></i></button>
+        </form>
+    </div>
+    
+    <form action="{% url 'youtube:video_bulk_action' %}" method="post" id="bulkActionForm">
+        {% csrf_token %}
+        
+        <div class="flex justify-between items-center mb-4">
+            <div class="flex gap-2">
+                <select name="action" class="form-control" style="width: auto;">
+                    <option value="">Bulk Action</option>
+                    <option value="activate">Activate</option>
+                    <option value="deactivate">Deactivate</option>
+                    <option value="delete">Delete</option>
+                </select>
+                <button type="submit" class="btn">Apply</button>
+            </div>
+            
+            <div class="filter-form">
+                <div class="form-group">
+                    <label for="start_date">Start Date</label>
+                    <input type="date" id="start_date" name="start_date" class="form-control" value="{{ start_date }}">
+                </div>
+                <div class="form-group">
+                    <label for="end_date">End Date</label>
+                    <input type="date" id="end_date" name="end_date" class="form-control" value="{{ end_date }}">
+                </div>
+                <button type="submit" class="btn">Filter</button>
+            </div>
+        </div>
+        
+        {% if videos_with_stats %}
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAll"></th>
+                            <th>Title</th>
+                            <th>Thumbnail</th>
+                            <th>Description</th>
+                            <th>Metadata</th>
+                            <th>Statistics</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in videos_with_stats %}
+                            <tr>
+                                <td><input type="checkbox" name="video_ids" value="{{ item.video.id }}"></td>
+                                <td>
+                                    <a href="{% url 'youtube:video_detail' item.video.id %}">
+                                        {{ item.video.title }}
+                                    </a>
+                                </td>
+                                <td>
+                                    {% with video_id=item.video.youtube_link|cut:"https://www.youtube.com/watch?v=" %}
+                                        <img src="https://img.youtube.com/vi/{{ video_id }}/default.jpg" alt="{{ item.video.title }}" class="video-thumbnail">
+                                    {% endwith %}
+                                </td>
+                                <td class="truncate">{{ item.video.description }}</td>
+                                <td>
+                                    <p><small><strong>Link:</strong> <a href="{{ item.video.youtube_link }}" target="_blank">Open <i class="fas fa-external-link-alt"></i></a></small></p>
+                                    <p><small><strong>Status:</strong> 
+                                        {% if item.video.is_active %}
+                                            <span class="badge badge-success">Active</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">Inactive</span>
+                                        {% endif %}
+                                    </small></p>
+                                    <p><small><strong>Created:</strong> {{ item.video.timestamp|date:"M d, Y" }}</small></p>
+                                    <p><small><strong>Updated:</strong> {{ item.video.timestamp_modified|date:"M d, Y" }}</small></p>
+                                    <p><small><strong>Password:</strong> {% if item.video.password %}Yes{% else %}No{% endif %}</small></p>
+                                </td>
+                                <td>
+                                    <p><i class="fas fa-eye"></i> {{ item.view_count }} views</p>
+                                    <p><i class="fas fa-comment"></i> {{ item.comment_count }} comments</p>
+                                </td>
+                                <td>
+                                    <div class="actions">
+                                        <a href="{% url 'youtube:video_update' item.video.id %}" class="btn btn-warning" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'youtube:video_delete' item.video.id %}" class="btn btn-danger" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                        <form action="{% url 'youtube:video_bulk_action' %}" method="post" style="display:inline;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="video_ids" value="{{ item.video.id }}">
+                                            <input type="hidden" name="action" value="{% if item.video.is_active %}deactivate{% else %}activate{% endif %}">
+                                            <button type="submit" class="btn {% if item.video.is_active %}btn-danger{% else %}btn-success{% endif %}" title="{% if item.video.is_active %}Deactivate{% else %}Activate{% endif %}">
+                                                <i class="fas {% if item.video.is_active %}fa-toggle-off{% else %}fa-toggle-on{% endif %}"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="card">
+                <p>No videos found. <a href="{% url 'youtube:video_create' %}">Add a new video</a>.</p>
+            </div>
+        {% endif %}
+    </form>
+    
+    {% if is_paginated %}
+        <ul class="pagination">
+            {% if page_obj.has_previous %}
+                <li><a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}"><i class="fas fa-angle-double-left"></i></a></li>
+                <li><a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}"><i class="fas fa-angle-left"></i></a></li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <li class="active"><a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">{{ num }}</a></li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li><a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">{{ num }}</a></li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+                <li><a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}"><i class="fas fa-angle-right"></i></a></li>
+                <li><a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}"><i class="fas fa-angle-double-right"></i></a></li>
+            {% endif %}
+        </ul>
+    {% endif %}
+</div>
+
+<div class="grid">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h2>Video Statistics</h2>
+            </div>
+            <div class="chart-container">
+                <canvas id="viewsChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Select all checkbox
+        $('#selectAll').on('change', function() {
+            $('input[name="video_ids"]').prop('checked', $(this).prop('checked'));
+        });
+        
+        // Views Chart
+        var ctx = document.getElementById('viewsChart').getContext('2d');
+        var viewData = {{ view_data_json|safe }};
+        
+        var labels = viewData.map(function(item) { return item.title; });
+        var data = viewData.map(function(item) { return item.views; });
+        
+        var viewsChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Views per Video',
+                    data: data,
+                    backgroundColor: 'rgba(52, 152, 219, 0.5)',
+                    borderColor: '#3498db',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

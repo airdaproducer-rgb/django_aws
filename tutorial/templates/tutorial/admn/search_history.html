@@ -1,0 +1,209 @@
+<!-- tutorial/admn/search_history.html -->
+{% extends 'tutorial/admn/base.html' %}
+
+{% block title %}Search History - YouTube Admin{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div class="flex justify-between items-center">
+        <h1><i class="fas fa-search"></i> Search History</h1>
+        <a href="{% url 'youtube:dashboard' %}" class="btn">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>Total Searches</h3>
+        <div class="value">{{ total_searches }}</div>
+    </div>
+    
+    <div class="stat-card">
+        <h3>Average Results</h3>
+        <div class="value">{{ avg_results|floatformat:1 }}</div>
+    </div>
+    
+    <div class="stat-card">
+        <h3>Unique Queries</h3>
+        <div class="value">{{ unique_queries }}</div>
+    </div>
+</div>
+
+<div class="grid">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h2>Search Trends</h2>
+            </div>
+            <div class="chart-container">
+                <canvas id="searchesChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-6 col-sm-12">
+        <div class="card">
+            <div class="card-header">
+                <h2>Popular Searches</h2>
+            </div>
+            <div>
+                {% if popular_searches %}
+                    <ol>
+                        {% for search in popular_searches %}
+                            <li>"{{ search.query }}" ({{ search.count }} times)</li>
+                        {% endfor %}
+                    </ol>
+                {% else %}
+                    <p>No search data available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-6 col-sm-12">
+        <div class="card">
+            <div class="card-header">
+                <h2>Filter Searches</h2>
+            </div>
+            <form action="{% url 'youtube:search_history' %}" method="get" class="filter-form">
+                <div class="form-group">
+                    <label for="start_date">Start Date</label>
+                    <input type="date" id="start_date" name="start_date" class="form-control" value="{{ start_date }}">
+                </div>
+                <div class="form-group">
+                    <label for="end_date">End Date</label>
+                    <input type="date" id="end_date" name="end_date" class="form-control" value="{{ end_date }}">
+                </div>
+                <button type="submit" class="btn">Filter</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h2>Search History</h2>
+            </div>
+            
+            {% if searches %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Query</th>
+                                <th>User</th>
+                                <th>IP Address</th>
+                                <th>Results</th>
+                                <th>Date/Time</th>
+                                <th>Results</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for search in searches %}
+                                <tr>
+                                    <td>"{{ search.query }}"</td>
+                                    <td>{{ search.user.username|default:"Anonymous" }}</td>
+                                    <td>{{ search.ip_address }}</td>
+                                    <td>{{ search.results_count }}</td>
+                                    <td>{{ search.search_date }}</td>
+                                    <td>
+                                        <button class="btn" onclick="toggleSearchResults({{ search.id }})">
+                                            <i class="fas fa-eye"></i> View
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr id="search-results-{{ search.id }}" style="display: none;">
+                                    <td colspan="6">
+                                        <div class="card" style="box-shadow: none; margin: 0;">
+                                            <h4>Results for "{{ search.query }}"</h4>
+                                            {% with results=search.results.all %}
+                                                {% if results %}
+                                                    <ol>
+                                                        {% for result in results %}
+                                                            <li>
+                                                                <a href="{% url 'youtube:video_detail' result.video.id %}">
+                                                                    {{ result.video.title }}
+                                                                </a>
+                                                            </li>
+                                                        {% endfor %}
+                                                    </ol>
+                                                {% else %}
+                                                    <p>No result details available.</p>
+                                                {% endif %}
+                                            {% endwith %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if is_paginated %}
+                    <ul class="pagination">
+                        {% if page_obj.has_previous %}
+                            <li><a href="?page=1{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}"><i class="fas fa-angle-double-left"></i></a></li>
+                            <li><a href="?page={{ page_obj.previous_page_number }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}"><i class="fas fa-angle-left"></i></a></li>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="active"><a href="?page={{ num }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">{{ num }}</a></li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li><a href="?page={{ num }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">{{ num }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                            <li><a href="?page={{ page_obj.next_page_number }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}"><i class="fas fa-angle-right"></i></a></li>
+                            <li><a href="?page={{ page_obj.paginator.num_pages }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}"><i class="fas fa-angle-double-right"></i></a></li>
+                        {% endif %}
+                    </ul>
+                {% endif %}
+            {% else %}
+                <div class="card">
+                    <p>No search history found.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Search Trends Chart
+        var ctx = document.getElementById('searchesChart').getContext('2d');
+        var searchesChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ days_labels|safe }},
+                datasets: [{
+                    label: 'Searches',
+                    data: {{ searches_data|safe }},
+                    borderColor: '#e74c3c',
+                    backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    });
+    
+    function toggleSearchResults(searchId) {
+        $('#search-results-' + searchId).toggle();
+    }
+</script>
+{% endblock %}

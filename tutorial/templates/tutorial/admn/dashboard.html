@@ -1,0 +1,152 @@
+<!-- tutorial/admn/dashboard.html -->
+{% extends 'tutorial/admn/base.html' %}
+
+{% block title %}Dashboard - YouTube Admin{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1><i class="fas fa-tachometer-alt"></i> Dashboard</h1>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>Total Videos</h3>
+        <div class="value">{{ total_videos }}</div>
+    </div>
+    
+    <div class="stat-card">
+        <h3>Active Videos</h3>
+        <div class="value">{{ active_videos }}</div>
+    </div>
+    
+    <div class="stat-card">
+        <h3>Total Views</h3>
+        <div class="value">{{ total_views }}</div>
+    </div>
+    
+    <div class="stat-card">
+        <h3>Views (30 days)</h3>
+        <div class="value">{{ views_last_30days }}</div>
+    </div>
+    
+    <div class="stat-card">
+        <h3>Total Comments</h3>
+        <div class="value">{{ total_comments }}</div>
+    </div>
+    
+    <div class="stat-card">
+        <h3>Comments (30 days)</h3>
+        <div class="value">{{ comments_last_30days }}</div>
+    </div>
+    
+    <div class="stat-card">
+        <h3>Total Searches</h3>
+        <div class="value">{{ total_searches }}</div>
+    </div>
+    
+    <div class="stat-card">
+        <h3>Searches (30 days)</h3>
+        <div class="value">{{ searches_last_30days }}</div>
+    </div>
+</div>
+
+<div class="grid">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h2>Activity Overview (Last 30 Days)</h2>
+            </div>
+            <div class="chart-container">
+                <canvas id="activityChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-6 col-sm-12">
+        <div class="card">
+            <div class="card-header">
+                <h2>Quick Links</h2>
+            </div>
+            <div>
+                <a href="{% url 'youtube:video_list' %}" class="btn mb-2"><i class="fas fa-video"></i> Manage Videos</a>
+                <a href="{% url 'youtube:video_create' %}" class="btn btn-success mb-2"><i class="fas fa-plus"></i> Add New Video</a>
+                <a href="{% url 'youtube:search_history' %}" class="btn mb-2"><i class="fas fa-search"></i> Search History</a>
+                <a href="{% url 'youtube:comment_list' %}" class="btn mb-2"><i class="fas fa-comments"></i> Comments</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-6 col-sm-12">
+        <div class="card">
+            <div class="card-header">
+                <h2>System Info</h2>
+            </div>
+            <div>
+                <p><strong>Last Login:</strong> {% now "F j, Y, g:i a" %}</p>
+                <p><strong>Username:</strong> {{ request.user.username }}</p>
+                <p><strong>Role:</strong> Administrator</p>
+                <p><strong>System Date:</strong> {% now "F j, Y" %}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Activity Chart
+        var ctx = document.getElementById('activityChart').getContext('2d');
+        var activityChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ days_labels|safe }},
+                datasets: [
+                    {
+                        label: 'Views',
+                        data: {{ views_data|safe }},
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Comments',
+                        data: {{ comments_data|safe }},
+                        borderColor: '#2ecc71',
+                        backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Searches',
+                        data: {{ searches_data|safe }},
+                        borderColor: '#e74c3c',
+                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

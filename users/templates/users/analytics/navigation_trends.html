@@ -1,0 +1,340 @@
+<!-- templates/users/analytics/navigation_trends.html -->
+{% extends 'users/analytics/base.html' %}
+
+{% block extra_head %}
+<style>
+    .frequent-paths-table td:nth-child(3) {
+        text-align: right;
+    }
+    
+    #sankey-chart {
+        width: 100%;
+        height: 400px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="page-header">
+    <h1>Navigation Trends</h1>
+    <button id="exportBtn" class="btn btn-export">Export CSV</button>
+</div>
+
+<div class="filters">
+    <form id="filterForm" method="get">
+        <div class="filter-group">
+            <label for="days">Date Range</label>
+            <select name="days" id="days">
+                <option value="1" {% if days == 1 %}selected{% endif %}>Last 24 hours</option>
+                <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
+                <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
+                <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="hours">Time Filter</label>
+            <select name="hours" id="hours">
+                <option value="0" {% if hours == 0 %}selected{% endif %}>All Time</option>
+                <option value="1" {% if hours == 1 %}selected{% endif %}>Last 1 hour</option>
+                <option value="3" {% if hours == 3 %}selected{% endif %}>Last 3 hours</option>
+                <option value="6" {% if hours == 6 %}selected{% endif %}>Last 6 hours</option>
+                <option value="12" {% if hours == 12 %}selected{% endif %}>Last 12 hours</option>
+                <option value="24" {% if hours == 24 %}selected{% endif %}>Last 24 hours</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="user_type">User Type</label>
+            <select name="user_type" id="user_type">
+                <option value="all" {% if user_type == 'all' %}selected{% endif %}>All Users</option>
+                <option value="authenticated" {% if user_type == 'authenticated' %}selected{% endif %}>Authenticated</option>
+                <option value="anonymous" {% if user_type == 'anonymous' %}selected{% endif %}>Anonymous</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="device_type">Device Type</label>
+            <select name="device_type" id="device_type">
+                <option value="" {% if not device_type %}selected{% endif %}>All Devices</option>
+                <option value="desktop" {% if device_type == 'desktop' %}selected{% endif %}>Desktop</option>
+                <option value="mobile" {% if device_type == 'mobile' %}selected{% endif %}>Mobile</option>
+                <option value="tablet" {% if device_type == 'tablet' %}selected{% endif %}>Tablet</option>
+                <option value="unknown" {% if device_type == 'unknown' %}selected{% endif %}>Unknown</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Apply Filters</button>
+    </form>
+</div>
+
+<div class="metrics-grid">
+    <div class="metric-card">
+        <h3>Total Navigations</h3>
+        <div class="value">{{ trends.total_navigations }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Navigation Frequency Over Time</h2>
+    </div>
+    <div class="card-body">
+        <div class="chart-container">
+            <canvas id="frequency-chart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Navigation Flow</h2>
+    </div>
+    <div class="card-body">
+        <div id="sankey-chart"></div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Most Frequent Navigation Paths</h2>
+    </div>
+    <div class="card-body">
+        <table class="frequent-paths-table">
+            <thead>
+                <tr>
+                    <th>From URL</th>
+                    <th>To URL</th>
+                    <th>Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for path in trends.frequent_paths %}
+                <tr>
+                    <td><a href="{% url 'accounts:page_view_report' %}?url={{ path.from_url|urlencode }}">{{ path.from_url|truncatechars:50 }}</a></td>
+                    <td><a href="{% url 'accounts:page_view_report' %}?url={{ path.to_url|urlencode }}">{{ path.to_url|truncatechars:50 }}</a></td>
+                    <td>{{ path.count }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3">No navigation paths found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Navigation Events</h2>
+    </div>
+    <div class="card-body">
+        <table>
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>From URL</th>
+                    <th>To URL</th>
+                    <th>Timestamp</th>
+                    <th>Device</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for path in navigation_paths %}
+                <tr>
+                    <td>
+                        {% if path.user %}
+                        <a href="{% url 'accounts:user_analytics' path.user.id %}">{{ path.user.email }}</a>
+                        {% else %}
+                        <a href="{% url 'accounts:user_analytics' 0 %}?session_id={{ path.session_id }}">Anonymous ({{ path.session_id|truncatechars:8 }})</a>
+                        {% endif %}
+                    </td>
+                    <td><a href="{% url 'accounts:page_view_report' %}?url={{ path.from_url|urlencode }}">{{ path.from_url|truncatechars:30 }}</a></td>
+                    <td><a href="{% url 'accounts:page_view_report' %}?url={{ path.to_url|urlencode }}">{{ path.to_url|truncatechars:30 }}</a></td>
+                    <td>{{ path.timestamp }}</td>
+                    <td>{{ path.device_type }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">No navigation events found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="pagination">
+            <span class="step-links">
+                {% if navigation_paths.has_previous %}
+                    <a href="?days={{ days }}&hours={{ hours }}&user_type={{ user_type }}&device_type={{ device_type }}&page=1">&laquo; first</a>
+                    <a href="?days={{ days }}&hours={{ hours }}&user_type={{ user_type }}&device_type={{ device_type }}&page={{ navigation_paths.previous_page_number }}">previous</a>
+                {% endif %}
+        
+                <span class="current">
+                    Page {{ navigation_paths.number }} of {{ navigation_paths.paginator.num_pages }}.
+                </span>
+        
+                {% if navigation_paths.has_next %}
+                    <a href="?days={{ days }}&hours={{ hours }}&user_type={{ user_type }}&device_type={{ device_type }}&page={{ navigation_paths.next_page_number }}">next</a>
+                    <a href="?days={{ days }}&hours={{ hours }}&user_type={{ user_type }}&device_type={{ device_type }}&page={{ navigation_paths.paginator.num_pages }}">last &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    $(document).ready(function() {
+        // Page load charts
+        renderFrequencyChart();
+        renderSankeyChart();
+        
+        // Filter form submission
+        $('#filterForm').on('submit', function(e) {
+            const days = $('#days').val();
+            const hours = $('#hours').val();
+            const userType = $('#user_type').val();
+            const deviceType = $('#device_type').val();
+            
+            // Update URL with filter parameters
+            updateUrlWithFilters({
+                days: days,
+                hours: hours,
+                user_type: userType,
+                device_type: deviceType
+            });
+            
+            // Don't submit if we're just updating the URL
+            if (e.target.tagName.toLowerCase() === 'form') {
+                return true;
+            }
+            return false;
+        });
+        
+        // Export button
+        $('#exportBtn').on('click', function() {
+            exportNavigationData();
+        });
+    });
+    
+    function renderFrequencyChart() {
+        const ctx = document.getElementById('frequency-chart').getContext('2d');
+        
+        // Parse frequency data
+        const frequencyData = {{ trends.frequency_data|safe }};
+        const labels = frequencyData.map(item => formatDateTime(item.hour));
+        const data = frequencyData.map(item => item.count);
+        
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Navigation Events',
+                    data: data,
+                    backgroundColor: 'rgba(74, 108, 247, 0.5)',
+                    borderColor: 'rgba(74, 108, 247, 1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function renderSankeyChart() {
+        // Parse Sankey data
+        const sankeyData = {{ trends.sankey_data|safe }};
+        
+        // Set up the SVG dimensions
+        const width = document.getElementById('sankey-chart').clientWidth;
+        const height = 400;
+        
+        // Create SVG
+        const svg = d3.select('#sankey-chart')
+            .append('svg')
+            .attr('width', width)
+            .attr('height', height);
+        
+        // Create Sankey generator
+        const sankey = d3.sankey()
+            .nodeWidth(15)
+            .nodePadding(10)
+            .extent([[1, 1], [width - 1, height - 6]]);
+        
+        // Generate the Sankey diagram
+        const graph = sankey({
+            nodes: sankeyData.nodes.map(d => ({...d})),
+            links: sankeyData.links.map(d => ({...d}))
+        });
+        
+        // Add links
+        svg.append('g')
+            .selectAll('path')
+            .data(graph.links)
+            .join('path')
+            .attr('d', d3.sankeyLinkHorizontal())
+            .attr('stroke', 'rgba(74, 108, 247, 0.3)')
+            .attr('stroke-width', d => Math.max(1, d.width))
+            .attr('fill', 'none')
+            .append('title')
+            .text(d => `${d.source.name} → ${d.target.name}\n${d.value} navigation(s)`);
+        
+        // Add nodes
+        const node = svg.append('g')
+            .selectAll('rect')
+            .data(graph.nodes)
+            .join('rect')
+            .attr('x', d => d.x0)
+            .attr('y', d => d.y0)
+            .attr('height', d => d.y1 - d.y0)
+            .attr('width', d => d.x1 - d.x0)
+            .attr('fill', 'rgba(74, 108, 247, 0.8)')
+            .append('title')
+            .text(d => `${d.name}\n${d.value} navigation(s)`);
+        
+        // Add labels
+        svg.append('g')
+            .selectAll('text')
+            .data(graph.nodes)
+            .join('text')
+            .attr('x', d => d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6)
+            .attr('y', d => (d.y1 + d.y0) / 2)
+            .attr('dy', '0.35em')
+            .attr('text-anchor', d => d.x0 < width / 2 ? 'start' : 'end')
+            .text(d => d.name)
+            .style('font-size', '10px')
+            .style('fill', 'var(--gray-700)');
+    }
+    
+    function exportNavigationData() {
+        // Export navigation paths data
+        const navigationPaths = {{ navigation_paths|safe }};
+        
+        const data = navigationPaths.map(path => {
+            return {
+                'user': path.user ? path.user.email : 'Anonymous',
+                'session_id': path.session_id,
+                'from_url': path.from_url,
+                'to_url': path.to_url,
+                'timestamp': formatDateTime(path.timestamp),
+                'device_type': path.device_type,
+                'browser': path.browser
+            };
+        });
+        
+        exportToCSV(data, 'navigation_trends.csv');
+    }
+</script>
+{% endblock %}
