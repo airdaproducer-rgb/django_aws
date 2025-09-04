@@ -1,4 +1,3 @@
-# utils.py
 from .models import ViewerHistory, SearchHistory
 
 def track_video_view(request, video):

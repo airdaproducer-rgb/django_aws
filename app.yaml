@@ -1,4 +1,4 @@
-name: mmb_tutorial
+name: mmb-tutorial
 services:
 - name: web
   github:

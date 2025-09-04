@@ -1,7 +1,5 @@
 from django.db import models
 from django.conf import settings
-from django.utils.text import slugify
-from django.urls import reverse
 
 
 class YoutubeVideo(models.Model):
@@ -84,44 +82,3 @@ class Comment(models.Model):
             return f"Comment by {self.user.username} on {self.video.title}"
         else:
             return f"Comment by {self.name or 'Anonymous'} on {self.video.title}"
-
-
-
-
-from django.db import models
-import uuid
-from datetime import timedelta
-
-class Story(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    title = models.CharField(max_length=255)
-    content = models.TextField()
-    publish_after = models.DurationField(help_text="Time delta after which to print the story (in seconds)")
-    created_at = models.DateTimeField(auto_now_add=True)
-    
-    def __str__(self):
-        return self.title
-    
-    class Meta:
-        verbose_name_plural = "Stories"
-
-
-from django.db import models
-import uuid
-
-class PDFDocument(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    title = models.CharField(max_length=255)
-    file = models.FileField(upload_to='pdfs/')
-    delay = models.DurationField(default=30, help_text="Time delay before extraction (in seconds)")
-    created_at = models.DateTimeField(auto_now_add=True)
-    extraction_status = models.CharField(max_length=20, default="pending")
-    extracted_text = models.TextField(blank=True, null=True)
-    
-    def __str__(self):
-        return self.title
-    
-    class Meta:
-        verbose_name_plural = "PDF Documents"
-
-
