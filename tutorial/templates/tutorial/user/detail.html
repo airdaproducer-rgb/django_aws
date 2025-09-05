@@ -219,6 +219,74 @@
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
     
+    .comment-actions {
+        margin-top: 10px;
+        display: flex;
+        gap: 10px;
+    }
+    
+    .action-button {
+        background: none;
+        border: none;
+        font-size: 14px;
+        color: var(--primary-color);
+        cursor: pointer;
+        padding: 2px 5px;
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .action-button i {
+        margin-right: 5px;
+    }
+    
+    .action-button:hover {
+        text-decoration: underline;
+    }
+    
+    .reply-form, .response-form {
+        margin-top: 10px;
+        padding: 10px;
+        background-color: #f9f9f9;
+        border-radius: 4px;
+        display: none;
+    }
+    
+    .replies-container, .responses-container {
+        margin-left: 20px;
+        padding-left: 15px;
+        border-left: 2px solid #eee;
+        margin-top: 10px;
+    }
+    
+    .reply, .response {
+        margin-bottom: 10px;
+        padding: 10px;
+        background-color: #f9f9f9;
+        border-radius: 4px;
+    }
+    
+    .nested-response {
+        margin-left: 15px;
+        padding-left: 10px;
+        border-left: 1px solid #eee;
+    }
+    
+    .load-more-button {
+        background: none;
+        border: none;
+        color: var(--primary-color);
+        font-size: 14px;
+        cursor: pointer;
+        padding: 5px 0;
+        width: 100%;
+        text-align: center;
+    }
+    
+    .load-more-button:hover {
+        text-decoration: underline;
+    }
+    
     @media (max-width: 768px) {
         .video-title {
             font-size: 18px;
@@ -249,7 +317,7 @@
         }
     }
     
-    /* New styles for AJAX comment features */
+    /* AJAX features styles */
     .error-message {
         color: #d9534f;
         font-size: 14px;
@@ -257,7 +325,7 @@
         display: none;
     }
     
-    .comment-form-spinner {
+    .form-spinner {
         display: none;
         margin-left: 10px;
         width: 20px;
@@ -276,7 +344,7 @@
         border-color: #d9534f;
     }
     
-    .comment-success-message {
+    .success-message {
         background-color: #dff0d8;
         color: #3c763d;
         padding: 10px;
@@ -285,13 +353,27 @@
         display: none;
     }
     
-    .comment-new {
+    .comment-new, .reply-new, .response-new {
         animation: fadeIn 0.5s;
     }
     
     @keyframes fadeIn {
         from {opacity: 0; transform: translateY(10px);}
         to {opacity: 1; transform: translateY(0);}
+    }
+    
+    .comment-highlight {
+        animation: highlight 2s;
+    }
+    
+    @keyframes highlight {
+        0% {background-color: #fff9c4;}
+        100% {background-color: white;}
+    }
+    
+    .edit-form-container {
+        margin: 10px 0;
+        display: none;
     }
 </style>
 {% endblock %}
@@ -325,54 +407,41 @@
                 <h2 class="section-title"><i class="fas fa-comments"></i> Comments <span id="comments-count">({{ comments|length }})</span></h2>
                 
                 <div class="comment-form">
-                    <div class="comment-success-message">
+                    <div class="success-message" id="comment-success-message">
                         <i class="fas fa-check-circle"></i> Your comment has been posted successfully!
                     </div>
-                    <form method="POST" id="comment-form" data-url="{% url 'youtube:detail' video.pk %}">
+                    <form method="POST" id="comment-form" data-url="{% url 'youtube:add_comment' video.pk %}">
                         {% csrf_token %}
+                        <input type="hidden" name="parent_id" id="comment_parent_id" value="">
                         <div class="form-group">
-                            <label for="{{ form.content.id_for_label }}">Share your thoughts:</label>
-                            {{ form.content }}
+                            <label for="{{ comment_form.content.id_for_label }}">Share your thoughts:</label>
+                            {{ comment_form.content }}
                             <div class="error-message" id="content-error"></div>
                         </div>
                         
                         {% if not user.is_authenticated %}
                             <div class="form-group">
-                                <label for="{{ form.name.id_for_label }}">Your Name:</label>
-                                {{ form.name }}
+                                <label for="{{ comment_form.name.id_for_label }}">Your Name:</label>
+                                {{ comment_form.name }}
                                 <div class="error-message" id="name-error"></div>
                             </div>
                         {% else %}
                             <div class="checkbox-group">
-                                {{ form.is_anonymous }}
-                                <label for="{{ form.is_anonymous.id_for_label }}">Post anonymously</label>
+                                {{ comment_form.is_anonymous }}
+                                <label for="{{ comment_form.is_anonymous.id_for_label }}">Post anonymously</label>
                             </div>
                         {% endif %}
                         
                         <button type="submit" class="submit-button" id="submit-comment">
                             Post Comment
-                            <span class="comment-form-spinner"></span>
+                            <span class="form-spinner"></span>
                         </button>
                     </form>
                 </div>
                 
                 <div class="comments-list" id="comments-container">
                     {% for comment in comments %}
-                        <div class="comment">
-                            <div class="comment-header">
-                                <div class="comment-author">
-                                    {% if comment.is_anonymous %}
-                                        Anonymous
-                                    {% else %}
-                                        {{ comment.name }}
-                                    {% endif %}
-                                </div>
-                                <div class="comment-date">{{ comment.created_at|date:"F d, Y" }}</div>
-                            </div>
-                            <div class="comment-content">
-                                {{ comment.content|linebreaks }}
-                            </div>
-                        </div>
+                        {% include "tutorial/user/comment_item.html" with comment=comment user=user user_tokens=user_tokens %}
                     {% empty %}
                         <div class="no-comments" id="no-comments">
                             <i class="far fa-comment-dots fa-3x" style="color: #ddd; margin-bottom: 15px;"></i>
@@ -385,18 +454,65 @@
     </div>
 {% endblock %}
 
+
 {% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+    // Function to get CSRF token from cookie
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Set up CSRF token for all AJAX POST requests
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            }
+        }
+    });
+
+    // Debounce function to prevent multiple rapid submissions
+    $.fn.debounce = function(callback, wait) {
+        let timeout;
+        return function() {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => callback.apply(this, arguments), wait);
+        };
+    };
+
     $(document).ready(function() {
+        // Initialize tokens from cookies
+        let userTokens = {};
+        try {
+            const tokensCookie = '{{ user_tokens|escapejs }}';
+            if (tokensCookie) {
+                userTokens = JSON.parse(tokensCookie);
+            }
+        } catch (e) {
+            console.error("Error parsing comment tokens:", e);
+        }
+
         // Toggle name field visibility based on anonymous checkbox
         $('#id_is_anonymous').change(function() {
-            if($(this).is(':checked')) {
+            if ($(this).is(':checked')) {
                 $('#id_name').parent().slideUp();
             } else {
                 $('#id_name').parent().slideDown();
             }
         });
-        
+
         // AJAX comment submission
         $('#comment-form').submit(function(e) {
             e.preventDefault();
@@ -404,11 +520,11 @@
             // Reset error messages
             $('.error-message').hide();
             $('.form-control').removeClass('error');
-            $('.comment-success-message').hide();
+            $('#comment-success-message').hide();
             
             // Show spinner
-            $('.comment-form-spinner').show();
-            $('#submit-comment').prop('disabled', true);
+            $(this).find('.form-spinner').show();
+            $(this).find('button').prop('disabled', true);
             
             // Get the form data
             const formData = $(this).serialize();
@@ -424,13 +540,12 @@
                 },
                 success: function(response) {
                     if (response.success) {
-                        // Comment was successfully posted
-                        
-                        // Reset the form
+                        // Reset the form and parent_id
                         $('#comment-form')[0].reset();
+                        $('#comment_parent_id').val('');
                         
                         // Show success message
-                        $('.comment-success-message').slideDown().delay(3000).slideUp();
+                        $('#comment-success-message').slideDown().delay(3000).slideUp();
                         
                         // Update comments count
                         $('#comments-count').text('(' + response.comment_count + ')');
@@ -440,14 +555,33 @@
                             $('#no-comments').remove();
                         }
                         
-                        // Prepend the new comment to the comments list
-                        const newComment = $(response.comment_html).addClass('comment-new');
-                        $('#comments-container').prepend(newComment);
+                        // If it's a reply, add to replies container
+                        const parentId = $('#comment_parent_id').val();
+                        if (parentId) {
+                            let repliesContainer = $('#replies-container-' + parentId);
+                            
+                            if (repliesContainer.length === 0) {
+                                $('#comment-' + parentId).append('<div class="replies-container" id="replies-container-' + parentId + '"></div>');
+                                repliesContainer = $('#replies-container-' + parentId);
+                            }
+                            repliesContainer.append($(response.comment_html).addClass('reply-new'));
+                            
+                            // Update reply count
+                            const replyCount = $('#reply-count-' + parentId);
+                            const currentCount = parseInt(replyCount.text().match(/\d+/)[0] || 0);
+                            replyCount.text((currentCount + 1) + ' ' + (currentCount + 1 === 1 ? 'Reply' : 'Replies'));
+                            
+                            // Hide the reply form
+                            $('#reply-form-' + parentId).slideUp();
+                        } else {
+                            // Prepend the new comment to the comments list
+                            $('#comments-container').prepend($(response.comment_html).addClass('comment-new'));
+                        }
                         
-                        // Scroll to the new comment
-                        $('html, body').animate({
-                            scrollTop: newComment.offset().top - 100
-                        }, 500);
+                        // Add token to userTokens if available
+                        if (response.edit_token) {
+                            userTokens[response.comment_id] = response.edit_token;
+                        }
                     } else {
                         // Display validation errors
                         $.each(response.errors, function(field, messages) {
@@ -456,15 +590,656 @@
                         });
                     }
                 },
-                error: function() {
-                    alert('An error occurred while posting your comment. Please try again.');
+                error: function(xhr) {
+                    console.error('Comment submission error:', xhr.status, xhr.statusText, xhr.responseText);
+                    alert('An error occurred while posting your comment: ' + xhr.statusText + '. Please try again.');
                 },
                 complete: function() {
                     // Hide spinner and re-enable submit button
-                    $('.comment-form-spinner').hide();
-                    $('#submit-comment').prop('disabled', false);
+                    $('.form-spinner').hide();
+                    $('#comment-form button').prop('disabled', false);
                 }
             });
+        });
+
+        // Reply to comment
+        $(document).on('click', '.reply-button', function(e) {
+            e.preventDefault();
+            const commentId = $(this).data('comment-id');
+            
+            // Hide all other reply forms
+            $('.reply-form').not('#reply-form-' + commentId).slideUp();
+            
+            // Toggle this reply form
+            $('#reply-form-' + commentId).slideToggle();
+        });
+
+        // Submit reply form
+        $(document).on('submit', '.reply-form-element', function(e) {
+            e.preventDefault();
+            
+            // Reset error messages
+            $(this).find('.error-message').hide();
+            $(this).find('.form-control').removeClass('error');
+            
+            // Show spinner
+            $(this).find('.form-spinner').show();
+            $(this).find('button').prop('disabled', true);
+            
+            // Get the form data
+            const formData = $(this).serialize();
+            const url = $(this).data('url');
+            const commentId = $(this).data('comment-id');
+            
+            // Submit the form via AJAX
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        let repliesContainer = $('#replies-container-' + commentId);
+                        
+                        if (repliesContainer.length === 0) {
+                            $('#comment-' + commentId).append('<div class="replies-container" id="replies-container-' + commentId + '"></div>');
+                            repliesContainer = $('#replies-container-' + commentId);
+                        }
+                        repliesContainer.append($(response.comment_html).addClass('reply-new'));
+                        
+                        // Update reply count
+                        const replyCount = $('#reply-count-' + commentId);
+                        const currentCount = parseInt(replyCount.text().match(/\d+/)[0] || 0);
+                        replyCount.text((currentCount + 1) + ' ' + (currentCount + 1 === 1 ? 'Reply' : 'Replies'));
+                        
+                        // Reset and hide the form
+                        $(e.target)[0].reset();
+                        $('#reply-form-' + commentId).slideUp();
+                        
+                        // Add token to userTokens if available
+                        if (response.edit_token) {
+                            userTokens[response.comment_id] = response.edit_token;
+                        }
+                    } else {
+                        // Display validation errors
+                        $.each(response.errors, function(field, messages) {
+                            $('#reply_' + field + '-error_' + commentId).text(messages[0]).show();
+                            $('#reply_id_' + field + '_' + commentId).addClass('error');
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Reply submission error:', xhr.status, xhr.statusText, xhr.responseText);
+                    alert('An error occurred while posting your reply: ' + xhr.statusText + '. Please try again.');
+                },
+                complete: function() {
+                    // Hide spinner and re-enable submit button
+                    $('.form-spinner').hide();
+                    $('.reply-form-element button').prop('disabled', false);
+                }
+            });
+        });
+
+        // Load more replies
+        $(document).on('click', '.load-replies-button', function(e) {
+            e.preventDefault();
+            const commentId = $(this).data('comment-id');
+            const button = $(this);
+            
+            // Show loading state
+            button.text('Loading...').prop('disabled', true);
+            
+            $.ajax({
+                type: 'POST',
+                url: '{% url "youtube:load_replies" 0 %}'.replace('0', commentId),
+                data: {
+                    csrfmiddlewaretoken: getCookie('csrftoken')
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Create or update replies container
+                        let repliesContainer = $('#replies-container-' + commentId);
+                        if (repliesContainer.length === 0) {
+                            $('#comment-' + commentId).append('<div class="replies-container" id="replies-container-' + commentId + '"></div>');
+                            repliesContainer = $('#replies-container-' + commentId);
+                        }
+                        repliesContainer.html(response.replies_html);
+                        
+                        // Update button text
+                        if (response.replies_count > 0) {
+                            button.text('Hide Replies').removeClass('load-replies-button').addClass('hide-replies-button');
+                        } else {
+                            button.text('No Replies').prop('disabled', true);
+                        }
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Load replies error:', xhr.status, xhr.statusText, xhr.responseText);
+                    button.text('Error Loading Replies').prop('disabled', false);
+                },
+                complete: function() {
+                    button.prop('disabled', false);
+                }
+            });
+        });
+
+        // Hide replies
+        $(document).on('click', '.hide-replies-button', function(e) {
+            e.preventDefault();
+            const commentId = $(this).data('comment-id');
+            
+            // Hide replies container
+            $('#replies-container-' + commentId).slideUp();
+            
+            // Update button
+            $(this).text('Show Replies').removeClass('hide-replies-button').addClass('load-replies-button');
+        });
+
+        // Respond to comment
+        $(document).on('click', '.response-button', function(e) {
+            e.preventDefault();
+            const commentId = $(this).data('comment-id');
+            
+            // Hide all other response forms
+            $('.response-form').not('#response-form-' + commentId).slideUp();
+            
+            // Toggle this response form
+            $('#response-form-' + commentId).slideToggle();
+        });
+
+        // Submit response form
+        $(document).on('submit', '.response-form-element', function(e) {
+            e.preventDefault();
+            
+            // Reset error messages
+            $(this).find('.error-message').hide();
+            $(this).find('.form-control').removeClass('error');
+            
+            // Show spinner
+            $(this).find('.form-spinner').show();
+            $(this).find('button').prop('disabled', true);
+            
+            // Get the form data
+            const formData = $(this).serialize();
+            const url = $(this).data('url');
+            const commentId = $(this).data('comment-id');
+            
+            // Submit the form via AJAX
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        let responsesContainer = $('#responses-container-' + commentId);
+                        
+                        if (responsesContainer.length === 0) {
+                            $('#comment-' + commentId).append('<div class="responses-container" id="responses-container-' + commentId + '"></div>');
+                            responsesContainer = $('#responses-container-' + commentId);
+                        }
+                        responsesContainer.append($(response.response_html).addClass('response-new'));
+                        
+                        // Update response count
+                        const responseCount = $('#response-count-' + commentId);
+                        const currentCount = parseInt(responseCount.text().match(/\d+/)[0] || 0);
+                        responseCount.text((currentCount + 1) + ' ' + (currentCount + 1 === 1 ? 'Response' : 'Responses'));
+                        
+                        // Reset and hide the form
+                        $(e.target)[0].reset();
+                        $('#response-form-' + commentId).slideUp();
+                        
+                        // Add token to userTokens if available
+                        if (response.edit_token) {
+                            userTokens['response_' + response.response_id] = response.edit_token;
+                        }
+                    } else {
+                        // Display validation errors
+                        $.each(response.errors, function(field, messages) {
+                            $('#response_' + field + '-error_' + commentId).text(messages[0]).show();
+                            $('#response_id_' + field + '_' + commentId).addClass('error');
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Response submission error:', xhr.status, xhr.statusText, xhr.responseText);
+                    alert('An error occurred while posting your response: ' + xhr.statusText + '. Please try again.');
+                },
+                complete: function() {
+                    // Hide spinner and re-enable submit button
+                    $('.form-spinner').hide();
+                    $('.response-form-element button').prop('disabled', false);
+                }
+            });
+        });
+
+        // Edit comment
+        $(document).on('click', '.edit-comment-button', function(e) {
+            e.preventDefault();
+            const commentId = $(this).data('comment-id');
+            const editContainer = $('#edit-form-container-' + commentId);
+            
+            if (editContainer.is(':visible')) {
+                editContainer.slideUp();
+                return;
+            }
+            
+            $.ajax({
+                type: 'GET',
+                url: '{% url "youtube:edit_comment" 0 %}'.replace('0', commentId),
+                success: function(response) {
+                    if (response.success) {
+                        editContainer.html(response.form_html).slideDown();
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Edit comment form error:', xhr.status, xhr.statusText, xhr.responseText);
+                    alert('An error occurred while loading the edit form: ' + xhr.statusText + '. Please try again.');
+                }
+            });
+        });
+
+        // Submit edit comment form
+        $(document).on('submit', '.edit-comment-form', function(e) {
+            e.preventDefault();
+            
+            // Reset error messages
+            $(this).find('.error-message').hide();
+            $(this).find('.form-control').removeClass('error');
+            
+            // Show spinner
+            $(this).find('.form-spinner').show();
+            $(this).find('button').prop('disabled', true);
+            
+            // Get the form data
+            const formData = $(this).serialize();
+            const url = $(this).attr('action');
+            const commentId = $(this).data('comment-id');
+            
+            // Submit the form via AJAX
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Replace the comment with updated version
+                        $('#comment-' + commentId).replaceWith($(response.comment_html).addClass('comment-highlight'));
+                        $('#edit-form-container-' + commentId).slideUp();
+                    } else {
+                        // Display validation errors
+                        $.each(response.errors, function(field, messages) {
+                            $('#edit_' + field + '-error_' + commentId).text(messages[0]).show();
+                            $('#edit_id_' + field + '_' + commentId).addClass('error');
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Edit comment submission error:', xhr.status, xhr.statusText, xhr.responseText);
+                    alert('An error occurred while updating your comment: ' + xhr.statusText + '. Please try again.');
+                },
+                complete: function() {
+                    // Hide spinner and re-enable submit button
+                    $('.form-spinner').hide();
+                    $('.edit-comment-form button').prop('disabled', false);
+                }
+            });
+        });
+
+        // Delete comment
+        $(document).on('click', '.delete-comment-button', function(e) {
+            e.preventDefault();
+            if (!confirm('Are you sure you want to delete this comment?')) {
+                return;
+            }
+            
+            const commentId = $(this).data('comment-id');
+            
+            $.ajax({
+                type: 'POST',
+                url: '{% url "youtube:delete_comment" 0 %}'.replace('0', commentId),
+                data: {
+                    csrfmiddlewaretoken: getCookie('csrftoken')
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Remove the comment
+                        $('#comment-' + commentId).slideUp(function() {
+                            $(this).remove();
+                            
+                            // Update comments count
+                            $('#comments-count').text('(' + response.comment_count + ')');
+                            
+                            // If no comments left, show the "no comments" message
+                            if (response.comment_count === 0) {
+                                $('#comments-container').html(`
+                                    <div class="no-comments" id="no-comments">
+                                        <i class="far fa-comment-dots fa-3x" style="color: #ddd; margin-bottom: 15px;"></i>
+                                        <p>No comments yet. Be the first to share your thoughts!</p>
+                                    </div>
+                                `);
+                            }
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Delete comment error:', xhr.status, xhr.statusText, xhr.responseText);
+                    alert('An error occurred while deleting your comment: ' + xhr.statusText + '. Please try again.');
+                }
+            });
+        });
+
+        // Edit response
+        $(document).on('click', '.edit-response-button', function(e) {
+            e.preventDefault();
+            const responseId = $(this).data('response-id');
+            const editContainer = $('#edit-response-form-container-' + responseId);
+            
+            if (editContainer.is(':visible')) {
+                editContainer.slideUp();
+                return;
+            }
+            
+            $.ajax({
+                type: 'GET',
+                url: '{% url "youtube:edit_response" 0 %}'.replace('0', responseId),
+                success: function(response) {
+                    if (response.success) {
+                        editContainer.html(response.form_html).slideDown();
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Edit response form error:', xhr.status, xhr.statusText, xhr.responseText);
+                    alert('An error occurred while loading the edit form: ' + xhr.statusText + '. Please try again.');
+                }
+            });
+        });
+
+        // Submit edit response form
+        $(document).on('submit', '.edit-response-form', function(e) {
+            e.preventDefault();
+            
+            // Reset error messages
+            $(this).find('.error-message').hide();
+            $(this).find('.form-control').removeClass('error');
+            
+            // Show spinner
+            $(this).find('.form-spinner').show();
+            $(this).find('button').prop('disabled', true);
+            
+            // Get the form data
+            const formData = $(this).serialize();
+            const url = $(this).attr('action');
+            const responseId = $(this).data('response-id');
+            
+            // Submit the form via AJAX
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Replace the response with updated version
+                        $('#response-' + responseId).replaceWith($(response.response_html).addClass('comment-highlight'));
+                        $('#edit-response-form-container-' + responseId).slideUp();
+                    } else {
+                        // Display validation errors
+                        $.each(response.errors, function(field, messages) {
+                            $('#edit_response_' + field + '-error_' + responseId).text(messages[0]).show();
+                            $('#edit_response_id_' + field + '_' + responseId).addClass('error');
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Edit response submission error:', xhr.status, xhr.statusText, xhr.responseText);
+                    alert('An error occurred while updating your response: ' + xhr.statusText + '. Please try again.');
+                },
+                complete: function() {
+                    // Hide spinner and re-enable submit button
+                    $('.form-spinner').hide();
+                    $('.edit-response-form button').prop('disabled', false);
+                }
+            });
+        });
+
+        // Delete response
+        $(document).on('click', '.delete-response-button', function(e) {
+            e.preventDefault();
+            if (!confirm('Are you sure you want to delete this response?')) {
+                return;
+            }
+            
+            const responseId = $(this).data('response-id');
+            const commentId = $(this).data('comment-id');
+            
+            $.ajax({
+                type: 'POST',
+                url: '{% url "youtube:delete_response" 0 %}'.replace('0', responseId),
+                data: {
+                    csrfmiddlewaretoken: getCookie('csrftoken')
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Remove the response
+                        $('#response-' + responseId).slideUp(function() {
+                            $(this).remove();
+                            
+                            // Update response count
+                            const responseCount = $('#response-count-' + commentId);
+                            const currentCount = parseInt(responseCount.text().match(/\d+/)[0] || 0);
+                            if (currentCount > 1) {
+                                responseCount.text((currentCount - 1) + ' Responses');
+                            } else {
+                                responseCount.text('0 Responses');
+                            }
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Delete response error:', xhr.status, xhr.statusText, xhr.responseText);
+                    alert('An error occurred while deleting your response: ' + xhr.statusText + '. Please try again.');
+                }
+            });
+        });
+
+        // Load responses
+        $(document).on('click', '.load-responses-button', function(e) {
+            e.preventDefault();
+            const commentId = $(this).data('comment-id');
+            const button = $(this);
+            
+            // Show loading state
+            button.text('Loading...').prop('disabled', true);
+            
+            $.ajax({
+                type: 'POST',
+                url: '{% url "youtube:load_responses" 0 %}'.replace('0', commentId),
+                data: {
+                    csrfmiddlewaretoken: getCookie('csrftoken')
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Create or update responses container
+                        let responsesContainer = $('#responses-container-' + commentId);
+                        if (responsesContainer.length === 0) {
+                            $('#comment-' + commentId).append('<div class="responses-container" id="responses-container-' + commentId + '"></div>');
+                            responsesContainer = $('#responses-container-' + commentId);
+                        }
+                        responsesContainer.html(response.responses_html);
+                        
+                        // Update button text
+                        if (response.responses_count > 0) {
+                            button.text('Hide Responses').removeClass('load-responses-button').addClass('hide-responses-button');
+                        } else {
+                            button.text('No Responses').prop('disabled', true);
+                        }
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Load responses error:', xhr.status, xhr.statusText, xhr.responseText);
+                    button.text('Error Loading Responses').prop('disabled', false);
+                },
+                complete: function() {
+                    button.prop('disabled', false);
+                }
+            });
+        });
+
+        // Hide responses
+        $(document).on('click', '.hide-responses-button', function(e) {
+            e.preventDefault();
+            const commentId = $(this).data('comment-id');
+            
+            // Hide responses container
+            $('#responses-container-' + commentId).slideUp();
+            
+            // Update button
+            $(this).text('Show Responses').removeClass('hide-responses-button').addClass('load-responses-button');
+        });
+
+        // Reply to response
+        $(document).on('click', '.reply-response-button', function(e) {
+            e.preventDefault();
+            const responseId = $(this).data('response-id');
+            
+            // Hide all other response reply forms
+            $('.response-reply-form').not('#response-reply-form-' + responseId).slideUp();
+            
+            // Toggle this response reply form
+            $('#response-reply-form-' + responseId).slideToggle();
+        });
+
+        // Submit response reply form
+        $(document).on('submit', '.response-reply-form-element', function(e) {
+            e.preventDefault();
+            
+            // Reset error messages
+            $(this).find('.error-message').hide();
+            $(this).find('.form-control').removeClass('error');
+            
+            // Show spinner
+            $(this).find('.form-spinner').show();
+            $(this).find('button').prop('disabled', true);
+            
+            // Get the form data
+            const formData = $(this).serialize();
+            const url = $(this).data('url');
+            const responseId = $(this).data('response-id');
+            
+            // Submit the form via AJAX
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        let nestedResponsesContainer = $('#nested-responses-container-' + responseId);
+                        
+                        if (nestedResponsesContainer.length === 0) {
+                            $('#response-' + responseId).append('<div class="nested-responses-container" id="nested-responses-container-' + responseId + '"></div>');
+                            nestedResponsesContainer = $('#nested-responses-container-' + responseId);
+                        }
+                        nestedResponsesContainer.append($(response.response_html).addClass('response-new'));
+                        
+                        // Update nested response count
+                        const nestedResponseCount = $('#nested-response-count-' + responseId);
+                        const currentCount = parseInt(nestedResponseCount.text().match(/\d+/)[0] || 0);
+                        nestedResponseCount.text((currentCount + 1) + ' ' + (currentCount + 1 === 1 ? 'Reply' : 'Replies'));
+                        
+                        // Reset and hide the form
+                        $(e.target)[0].reset();
+                        $('#response-reply-form-' + responseId).slideUp();
+                        
+                        // Add token to userTokens if available
+                        if (response.edit_token) {
+                            userTokens['response_' + response.response_id] = response.edit_token;
+                        }
+                    } else {
+                        // Display validation errors
+                        $.each(response.errors, function(field, messages) {
+                            $('#response_reply_' + field + '-error_' + responseId).text(messages[0]).show();
+                            $('#response_reply_id_' + field + '_' + responseId).addClass('error');
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Nested response submission error:', xhr.status, xhr.statusText, xhr.responseText);
+                    alert('An error occurred while posting your reply: ' + xhr.statusText + '. Please try again.');
+                },
+                complete: function() {
+                    // Hide spinner and re-enable submit button
+                    $('.form-spinner').hide();
+                    $('.response-reply-form-element button').prop('disabled', false);
+                }
+            });
+        });
+
+        // Load nested responses
+        $(document).on('click', '.load-nested-responses-button', function(e) {
+            e.preventDefault();
+            const responseId = $(this).data('response-id');
+            const button = $(this);
+            
+            // Show loading state
+            button.text('Loading...').prop('disabled', true);
+            
+            $.ajax({
+                type: 'POST',
+                url: '{% url "youtube:load_nested_responses" 0 %}'.replace('0', responseId),
+                data: {
+                    csrfmiddlewaretoken: getCookie('csrftoken')
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Create or update nested responses container
+                        let nestedResponsesContainer = $('#nested-responses-container-' + responseId);
+                        if (nestedResponsesContainer.length === 0) {
+                            $('#response-' + responseId).append('<div class="nested-responses-container" id="nested-responses-container-' + responseId + '"></div>');
+                            nestedResponsesContainer = $('#nested-responses-container-' + responseId);
+                        }
+                        nestedResponsesContainer.html(response.responses_html);
+                        
+                        // Update button text
+                        if (response.responses_count > 0) {
+                            button.text('Hide Replies').removeClass('load-nested-responses-button').addClass('hide-nested-responses-button');
+                        } else {
+                            button.text('No Replies').prop('disabled', true);
+                        }
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Load nested responses error:', xhr.status, xhr.statusText, xhr.responseText);
+                    button.text('Error Loading Replies').prop('disabled', false);
+                },
+                complete: function() {
+                    button.prop('disabled', false);
+                }
+            });
+        });
+
+        // Hide nested responses
+        $(document).on('click', '.hide-nested-responses-button', function(e) {
+            e.preventDefault();
+            const responseId = $(this).data('response-id');
+            
+            // Hide nested responses container
+            $('#nested-responses-container-' + responseId).slideUp();
+            
+            // Update button
+            $(this).text('Show Replies').removeClass('hide-nested-responses-button').addClass('load-nested-responses-button');
         });
     });
 </script>

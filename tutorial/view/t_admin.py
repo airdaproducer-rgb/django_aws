@@ -425,7 +425,7 @@ class YACommentDeleteView(LoginRequiredMixin, DeleteView):
     template_name = 'tutorial/admn/comment_confirm_delete.html'
     
     def get_success_url(self):
-        return self.request.META.get('HTTP_REFERER', reverse_lazy('youtube:comment_list'))
+        return reverse_lazy('youtube:comment_list')
     
     def delete(self, request, *args, **kwargs):
         messages.success(request, "Comment deleted successfully!")

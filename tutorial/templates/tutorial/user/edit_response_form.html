@@ -1,0 +1,29 @@
+<form method="POST" class="edit-response-form" action="{% url 'youtube:edit_response' response.id %}" data-response-id="{{ response.id }}">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="edit_response_id_content_{{ response.id }}">Edit Response:</label>
+        <textarea name="content" class="form-control" id="edit_response_id_content_{{ response.id }}">{{ response.content }}</textarea>
+        <div class="error-message" id="edit_response_content-error_{{ response.id }}"></div>
+    </div>
+    
+    {% if not user.is_authenticated %}
+        <div class="form-group">
+            <label for="edit_response_id_name_{{ response.id }}">Your Name:</label>
+            <input type="text" name="name" class="form-control" id="edit_response_id_name_{{ response.id }}" value="{{ response.name }}">
+            <div class="error-message" id="edit_response_name-error_{{ response.id }}"></div>
+        </div>
+    {% else %}
+        <div class="checkbox-group">
+            <input type="checkbox" name="is_anonymous" id="edit_response_id_is_anonymous_{{ response.id }}" {% if response.is_anonymous %}checked{% endif %}>
+            <label for="edit_response_id_is_anonymous_{{ response.id }}">Post anonymously</label>
+        </div>
+    {% endif %}
+    
+    <button type="submit" class="submit-button">
+        Update Response
+        <span class="form-spinner"></span>
+    </button>
+    <button type="button" class="action-button cancel-edit-button" onclick="$('#edit-response-form-container-{{ response.id }}').slideUp();">
+        Cancel
+    </button>
+</form>

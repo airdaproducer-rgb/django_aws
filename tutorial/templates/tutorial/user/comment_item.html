@@ -1,4 +1,4 @@
-<div class="comment">
+<div class="comment" id="comment-{{ comment.id }}">
     <div class="comment-header">
         <div class="comment-author">
             {% if comment.is_anonymous %}
@@ -9,7 +9,98 @@
         </div>
         <div class="comment-date">{{ comment.created_at|date:"F d, Y" }}</div>
     </div>
-    <div class="comment-content">
+    <div class="comment-content" id="comment-content-{{ comment.id }}">
         {{ comment.content|linebreaks }}
     </div>
+    
+    <div class="comment-actions">
+        <button class="action-button reply-button" data-comment-id="{{ comment.id }}">
+            <i class="fas fa-reply"></i> Reply
+        </button>
+        <button class="action-button response-button" data-comment-id="{{ comment.id }}">
+            <i class="fas fa-comment-dots"></i> <span id="response-count-{{ comment.id }}">
+                {% with response_count=comment.responses.count %}
+                    {{ response_count }} {{ response_count|pluralize:"Response,Responses" }}
+                {% endwith %}
+            </span>
+        </button>
+        
+        {% if user.is_authenticated and user == comment.user or comment.edit_token and comment.edit_token in user_tokens %}
+            <button class="action-button edit-comment-button" data-comment-id="{{ comment.id }}">
+                <i class="fas fa-edit"></i> Edit
+            </button>
+            <button class="action-button delete-comment-button" data-comment-id="{{ comment.id }}">
+                <i class="fas fa-trash-alt"></i> Delete
+            </button>
+        {% endif %}
+    </div>
+    
+    <div class="edit-form-container" id="edit-form-container-{{ comment.id }}"></div>
+    
+    <div class="reply-form" id="reply-form-{{ comment.id }}">
+        <form method="POST" class="reply-form-element" data-url="{% url 'youtube:add_comment' comment.video.pk %}" data-comment-id="{{ comment.id }}">
+            {% csrf_token %}
+            <input type="hidden" name="parent_id" id="reply_parent_id_{{ comment.id }}" value="{{ comment.id }}">
+            <div class="form-group">
+                <label for="reply_id_content_{{ comment.id }}">Your Reply:</label>
+                <textarea name="content" class="form-control" id="reply_id_content_{{ comment.id }}" placeholder="Write your reply..."></textarea>
+                <div class="error-message" id="reply_content-error_{{ comment.id }}"></div>
+            </div>
+            
+            {% if not user.is_authenticated %}
+                <div class="form-group">
+                    <label for="reply_id_name_{{ comment.id }}">Your Name:</label>
+                    <input type="text" name="name" class="form-control" id="reply_id_name_{{ comment.id }}" placeholder="Your name">
+                    <div class="error-message" id="reply_name-error_{{ comment.id }}"></div>
+                </div>
+            {% else %}
+                <div class="checkbox-group">
+                    <input type="checkbox" name="is_anonymous" id="reply_id_is_anonymous_{{ comment.id }}">
+                    <label for="reply_id_is_anonymous_{{ comment.id }}">Post anonymously</label>
+                </div>
+            {% endif %}
+            
+            <button type="submit" class="submit-button">
+                Post Reply
+                <span class="form-spinner"></span>
+            </button>
+        </form>
+    </div>
+    
+    <div class="response-form" id="response-form-{{ comment.id }}">
+        <form method="POST" class="response-form-element" data-url="{% url 'youtube:add_response' comment.id %}" data-comment-id="{{ comment.id }}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="response_id_content_{{ comment.id }}">Your Response:</label>
+                <textarea name="content" class="form-control" id="response_id_content_{{ comment.id }}" placeholder="Write your response..."></textarea>
+                <div class="error-message" id="response_content-error_{{ comment.id }}"></div>
+            </div>
+            
+            {% if not user.is_authenticated %}
+                <div class="form-group">
+                    <label for="response_id_name_{{ comment.id }}">Your Name:</label>
+                    <input type="text" name="name" class="form-control" id="response_id_name_{{ comment.id }}" placeholder="Your name">
+                    <div class="error-message" id="response_name-error_{{ comment.id }}"></div>
+                </div>
+            {% else %}
+                <div class="checkbox-group">
+                    <input type="checkbox" name="is_anonymous" id="response_id_is_anonymous_{{ comment.id }}">
+                    <label for="response_id_is_anonymous_{{ comment.id }}">Post anonymously</label>
+                </div>
+            {% endif %}
+            
+            <button type="submit" class="submit-button">
+                Post Response
+                <span class="form-spinner"></span>
+            </button>
+        </form>
+    </div>
+    
+    {% if comment.replies.exists %}
+        <button class="action-button load-replies-button" data-comment-id="{{ comment.id }}">
+            <i class="fas fa-chevron-down"></i> <span id="reply-count-{{ comment.id }}">
+                {{ comment.replies.count }} {{ comment.replies.count|pluralize:"Reply,Replies" }}
+            </span>
+        </button>
+    {% endif %}
 </div>

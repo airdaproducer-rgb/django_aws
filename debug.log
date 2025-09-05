@@ -1,0 +1,44 @@
+Internal Server Error: /t/t/u/video/6/
+Traceback (most recent call last):
+  File "C:\Users\PETROLEUM ENGINEER\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PETROLEUM ENGINEER\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PETROLEUM ENGINEER\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PETROLEUM ENGINEER\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PETROLEUM ENGINEER\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\views\generic\detail.py", line 113, in get
+    context = self.get_context_data(object=self.object)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\ASAFU PROJECT\DIGITAL OCEAN\youtube\a\tutorial\view\t_user.py", line 137, in get_context_data
+    context['response_form'] = CommentResponseForm()
+                               ^^^^^^^^^^^^^^^^^^^
+NameError: name 'CommentResponseForm' is not defined
+Internal Server Error: /t/t/u/video/6/
+Traceback (most recent call last):
+  File "C:\Users\PETROLEUM ENGINEER\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PETROLEUM ENGINEER\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PETROLEUM ENGINEER\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PETROLEUM ENGINEER\AppData\Local\Programs\Python\Python311\Lib\site-packages\django\views\generic\base.py", line 143, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\ASAFU PROJECT\DIGITAL OCEAN\youtube\a\tutorial\view\t_user.py", line 159, in post
+    return self.handle_comment(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\ASAFU PROJECT\DIGITAL OCEAN\youtube\a\tutorial\view\t_user.py", line 215, in handle_comment
+    comment.save()
+  File "D:\ASAFU PROJECT\DIGITAL OCEAN\youtube\a\tutorial\models.py", line 103, in save
+    self.edit_token = secrets.token_hex(32)
+                      ^^^^^^^
+NameError: name 'secrets' is not defined

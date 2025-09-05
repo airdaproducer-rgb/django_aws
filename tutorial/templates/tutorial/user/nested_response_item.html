@@ -1,0 +1,28 @@
+<div class="response nested-response" id="response-{{ response.id }}">
+    <div class="comment-header">
+        <div class="comment-author">
+            {% if response.is_anonymous %}
+                Anonymous
+            {% else %}
+                {{ response.name }}
+            {% endif %}
+        </div>
+        <div class="comment-date">{{ response.created_at|date:"F d, Y" }}</div>
+    </div>
+    <div class="comment-content" id="response-content-{{ response.id }}">
+        {{ response.content|linebreaks }}
+    </div>
+    
+    <div class="comment-actions">
+        {% if user.is_authenticated and user == response.user or response.edit_token and response.edit_token in user_tokens %}
+            <button class="action-button edit-response-button" data-response-id="{{ response.id }}">
+                <i class="fas fa-edit"></i> Edit
+            </button>
+            <button class="action-button delete-response-button" data-response-id="{{ response.id }}" data-comment-id="{{ response.comment.id }}">
+                <i class="fas fa-trash-alt"></i> Delete
+            </button>
+        {% endif %}
+    </div>
+    
+    <div class="edit-form-container" id="edit-response-form-container-{{ response.id }}"></div>
+</div>

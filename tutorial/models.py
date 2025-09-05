@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-
+import secrets
 
 class YoutubeVideo(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -68,11 +68,16 @@ class SearchResult(models.Model):
 class Comment(models.Model):
     video = models.ForeignKey(YoutubeVideo, on_delete=models.CASCADE, related_name='comments')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies')
     name = models.CharField(max_length=100, blank=True, null=True)
     content = models.TextField()
     is_anonymous = models.BooleanField(default=False)
     is_approved = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True, null=True)
+    edit_token = models.CharField(max_length=64, blank=True, null=True)
     
     class Meta:
         ordering = ['-created_at']
@@ -82,3 +87,39 @@ class Comment(models.Model):
             return f"Comment by {self.user.username} on {self.video.title}"
         else:
             return f"Comment by {self.name or 'Anonymous'} on {self.video.title}"
+    
+    def save(self, *args, **kwargs):
+        # Generate edit token for non-authenticated users if not present
+        if not self.user and not self.edit_token:
+            self.edit_token = secrets.token_hex(32)
+        super().save(*args, **kwargs)
+
+# New model for response tracking
+class CommentResponse(models.Model):
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='responses')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies')
+    name = models.CharField(max_length=100, blank=True, null=True)
+    content = models.TextField()
+    is_anonymous = models.BooleanField(default=False)
+    is_approved = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True, null=True)
+    edit_token = models.CharField(max_length=64, blank=True, null=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        if self.user:
+            return f"Response by {self.user.username} on comment #{self.comment.id}"
+        else:
+            return f"Response by {self.name or 'Anonymous'} on comment #{self.comment.id}"
+    
+    def save(self, *args, **kwargs):
+        # Generate edit token for non-authenticated users if not present
+        if not self.user and not self.edit_token:
+            self.edit_token = secrets.token_hex(32)
+        super().save(*args, **kwargs)
