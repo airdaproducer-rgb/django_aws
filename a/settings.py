@@ -82,13 +82,28 @@ AUTH_USER_MODEL='users.CustomUser'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+""" 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+"""
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'mmb-pool',                   
+        'USER': 'doadmin',                   
+        'PASSWORD': 'AVNS_DAsG7abd6bTBswqji-j', 
+        'HOST': 'private-mmb-db-do-user-24848927-0.k.db.ondigitalocean.com', 
+        'PORT': '25061',                    
+        'OPTIONS': {
+            'sslmode': 'require',             
+        },
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -153,18 +168,6 @@ CACHES = {
         'LOCATION': 'unique-snowflake',
     }
 }
-
-# Celery settings
-CELERY_BROKER_URL = 'memory://'  # Use in-memory broker
-CELERY_BROKER_BACKEND = 'memory'
-CELERY_TASK_ALWAYS_EAGER = True
-CELERY_TASK_EAGER_PROPAGATES = True 
-CELERY_RESULT_BACKEND = 'django-db'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'UTC'
-
 
 
 # CKEditor 5 Configurations
