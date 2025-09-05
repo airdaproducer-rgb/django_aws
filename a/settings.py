@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-ftym5*b#aukx)z0xuiq60nr!4e-s2pd*j3=1_8f_^*3(vc#_1k
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['https://mmb-tutorial-i8vua.ondigitalocean.app','fromdown.xyz','www.fromdown.xyz']
 
 # Application definition
 
