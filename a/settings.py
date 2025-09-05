@@ -94,13 +94,15 @@ DATABASES = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'mmb-pool',                   
+        'NAME': 'defaultdb',                   
         'USER': 'doadmin',                   
         'PASSWORD': 'AVNS_DAsG7abd6bTBswqji-j', 
-        'HOST': 'private-mmb-db-do-user-24848927-0.k.db.ondigitalocean.com', 
-        'PORT': '25061',                    
+        'HOST': 'mmb-db-do-user-24848927-0.k.db.ondigitalocean.com', 
+        'PORT': '25060',                    
         'OPTIONS': {
-            'sslmode': 'require',             
+            'sslmode': 'require', 
+            'sslrootcert': os.path.join(BASE_DIR, 'ca-certificate.crt'),
+            'connect_timeout': 90,             
         },
     }
 }
