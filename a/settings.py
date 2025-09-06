@@ -75,14 +75,14 @@ TEMPLATES = [
 WSGI_APPLICATION = 'a.wsgi.application'
 AUTH_USER_MODEL='users.CustomUser'
 
-#LOGIN_URL = 'accounts:login'
-#LOGIN_REDIRECT_URL = 'software:app_user_list'
+LOGIN_URL = 'accounts:login'
+LOGIN_REDIRECT_URL = 'youtube:dashboard'
 #LOGOUT_REDIRECT_URL = 'accounts:login'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-""" 
+"""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',

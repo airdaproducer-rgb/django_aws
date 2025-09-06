@@ -1,174 +1,92 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Update Profile - AirNationMusic</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        body {
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: #f5f7fa;
-            position: relative;
-        }
-        .particles-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            overflow: hidden;
-        }
-        .particle {
-            position: absolute;
-            background: rgba(231, 76, 60, 0.3);
-            border-radius: 50%;
-            animation: float 15s infinite ease-in-out;
-        }
-        @keyframes float {
-            0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
-            25% { transform: translateY(-30px) translateX(10px); opacity: 0.5; }
-            50% { transform: translateY(-10px) translateX(30px); opacity: 0.3; }
-            75% { transform: translateY(30px) translateX(-10px); opacity: 0.5; }
-        }
-        .container {
-            max-width: 500px;
-            margin: 20px;
-            padding: 30px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-        .header {
-            text-align: center;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #eee;
-        }
-        .header h1 {
-            color: #e74c3c;
-            font-size: 2rem;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        .header i {
-            font-size: 2.5rem;
-        }
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-        .form-group label {
-            display: block;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 0.5rem;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-            transition: border-color 0.3s;
-        }
-        .form-group input:focus {
-            border-color: #e74c3c;
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2);
-        }
-        .hint {
-            font-size: 0.9rem;
-            color: #e74c3c;
-            margin-top: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .btn {
-            width: 100%;
-            padding: 12px;
-            background: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background 0.3s, transform 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        .btn:hover {
-            background: #c0392b;
-            transform: translateY(-2px);
-        }
-        @media (max-width: 480px) {
-            .container {
-                margin: 10px;
-                padding: 20px;
-            }
-            .header h1 {
-                font-size: 1.5rem;
-            }
-        }
-    </style>
-</head>
-<body>
+{% extends 'tutorial/admn/base.html' %}
+
+{% block title %}Update Profile - MMB Tutorials{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1><i class="fas fa-user-edit"></i> Update Profile</h1>
+</div>
+
+<div class="card">
     <div class="particles-container" id="particles"></div>
-    <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-user-edit"></i> Update Profile</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" value="{{ current_user.username }}" required class="form-control">
         </div>
-        <form method="post">
-            {% csrf_token %}
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" value="{{ current_user.username }}" required>
-            </div>
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" value="{{ current_user.email }}" required>
-                {% if not current_user.is_email_verified %}
-                    <p class="hint"><i class="fas fa-info-circle"></i> Changing your email will require verification.</p>
-                {% endif %}
-            </div>
-            <button type="submit" class="btn">
-                <i class="fas fa-save"></i> Save Changes
-            </button>
-        </form>
-    </div>
-    <script>
-        function createParticles() {
-            const particlesContainer = document.getElementById('particles');
-            const numberOfParticles = 20;
-            for (let i = 0; i < numberOfParticles; i++) {
-                const particle = document.createElement('div');
-                particle.classList.add('particle');
-                const size = Math.random() * 30 + 10;
-                particle.style.width = `${size}px`;
-                particle.style.height = `${size}px`;
-                particle.style.left = `${Math.random() * 100}%`;
-                particle.style.top = `${Math.random() * 100}%`;
-                particle.style.animationDelay = `${Math.random() * 10}s`;
-                const opacity = Math.random() * 0.3 + 0.1;
-                particle.style.background = `hsla(0, 70%, 60%, ${opacity})`;
-                particlesContainer.appendChild(particle);
-            }
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" value="{{ current_user.email }}" required class="form-control">
+            {% if not current_user.is_email_verified %}
+                <p class="alert alert-warning mt-2"><i class="fas fa-info-circle"></i> Changing your email will require verification.</p>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-success">
+            <i class="fas fa-save"></i> Save Changes
+        </button>
+    </form>
+</div>
+
+{% block extra_js %}
+<script>
+    function createParticles() {
+        const particlesContainer = document.getElementById('particles');
+        const numberOfParticles = 20;
+        for (let i = 0; i < numberOfParticles; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            const size = Math.random() * 30 + 10;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.left = `${Math.random() * 100}%`;
+            particle.style.top = `${Math.random() * 100}%`;
+            particle.style.animationDelay = `${Math.random() * 10}s`;
+            const opacity = Math.random() * 0.3 + 0.1;
+            particle.style.background = `hsla(0, 70%, 60%, ${opacity})`;
+            particlesContainer.appendChild(particle);
         }
-        document.addEventListener('DOMContentLoaded', createParticles);
-    </script>
-</body>
-</html>
+    }
+    document.addEventListener('DOMContentLoaded', createParticles);
+</script>
+<style>
+    .particles-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        overflow: hidden;
+    }
+    .particle {
+        position: absolute;
+        background: rgba(231, 76, 60, 0.3);
+        border-radius: 50%;
+        animation: float 15s infinite ease-in-out;
+    }
+    @keyframes float {
+        0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+        25% { transform: translateY(-30px) translateX(10px); opacity: 0.5; }
+        50% { transform: translateY(-10px) translateX(30px); opacity: 0.3; }
+        75% { transform: translateY(30px) translateX(-10px); opacity: 0.5; }
+    }
+    .card {
+        position: relative;
+        overflow: hidden;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    .btn-success {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: background 0.3s, transform 0.2s;
+    }
+    .btn-success:hover {
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+{% endblock %}

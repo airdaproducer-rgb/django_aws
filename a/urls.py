@@ -19,7 +19,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from users.views import home,terms_of_use,donate_view,privacy_policy,help_center,about
+from users.views import terms_of_use,donate_view,privacy_policy,help_center,about
 from django.contrib.auth import views as auth_views
 from tutorial.view.t_user import UserListView
 

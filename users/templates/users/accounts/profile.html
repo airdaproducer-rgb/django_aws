@@ -1,4 +1,6 @@
-{% extends 'users/accounts/base.html' %}
+{% extends 'tutorial/admn/base.html' %}
+
+{% block title %}User Profile{% endblock %}
 
 {% block style %}
 <style>
@@ -20,25 +22,16 @@
         font-weight: 500;
     }
 
-    .light-theme .profile-links a:hover {
-        color: var(--hover-light);
-    }
-
-    .dark-theme .profile-links a:hover {
-        color: var(--hover-dark);
+    .profile-links a:hover {
+        color: var(--secondary-color);
     }
 
     .profile-info {
-        background-color: var(--background-light);
+        background-color: #fff;
         padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         margin-bottom: 20px;
-    }
-
-    .dark-theme .profile-info {
-        background-color: var(--sidebar-dark);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
     }
 
     .form-group {
@@ -46,7 +39,7 @@
     }
 
     .form-group label {
-        font-weight: bold;
+        font-weight: 600;
         display: block;
         margin-bottom: 5px;
     }
@@ -54,13 +47,9 @@
     .form-group p {
         margin: 0;
         padding: 10px;
-        background-color: white;
+        background-color: #f9f9f9;
         border-radius: 4px;
-    }
-
-    .dark-theme .form-group p {
-        background-color: var(--background-dark);
-        color: var(--text-dark);
+        border: 1px solid var(--border-color);
     }
 
     .verification-status {
@@ -69,11 +58,11 @@
     }
 
     .verification-status.verified {
-        color: #28a745;
+        color: var(--secondary-color);
     }
 
     .verification-status.unverified {
-        color: #dc3545;
+        color: var(--danger-color);
     }
 
     .btn {
@@ -89,7 +78,7 @@
     }
 
     .btn:hover {
-        background-color: #3267d6;
+        background-color: #2980b9;
     }
 
     .profile-initial {
@@ -110,22 +99,17 @@
 
 {% block content %}
 <div class="container">
-    <div class="header">
+    <div class="content-header">
         <h1>
             {% if user.is_authenticated %}
-                <span class="profile-initial">{{ user.username|slice:":1"|upper }}</span>
+                <span class="profile-initial">{{ user.username|slice:":1" }}</span>
             {% else %}
                 <i class="fas fa-user-circle"></i>
             {% endif %}
-            Your Profile
+            Profile
         </h1>
     </div>
-    <div class="profile-links">
-        {% if user.is_authenticated %}
-            <a href="#">My Saved Apps</a>
-            <a href="#">My Downloads</a>
-        {% endif %}
-    </div>
+
     <div class="profile-info">
         <div class="form-group">
             <label>Username</label>

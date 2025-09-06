@@ -41,14 +41,14 @@ def create_verification_code(user):
     return verification
 
 def send_verification_email(user, verification_code):
-    subject = 'Verify your email - AirNationMusic'
+    subject = 'Verify your email - MMB Tutorials'
     from_email = settings.DEFAULT_FROM_EMAIL
     to_email = user.email
     
     context = {
         'user': user,
         'code': verification_code,
-        'site_name': 'AirNationMusic'
+        'site_name': 'MMB Tutorials'
     }
     
     html_content = render_to_string('users/accounts/email_verification.html', context)
@@ -59,13 +59,13 @@ def send_verification_email(user, verification_code):
     email.send()
 
 def send_welcome_email(user):
-    subject = 'Welcome to AirNationMusic!'
+    subject = 'Welcome to MMB Tutorials!'
     from_email = settings.DEFAULT_FROM_EMAIL
     to_email = user.email
     
     context = {
         'user': user,
-        'site_name': 'AirNationMusic'
+        'site_name': 'MMB Tutorials'
     }
     
     html_content = render_to_string('users/accounts/welcome_email.html', context)

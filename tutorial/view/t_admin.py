@@ -1,37 +1,14 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse_lazy,reverse
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.views.generic.base import TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.http import JsonResponse
-from django.db.models import Count, Q
-from django.db.models.functions import TruncDate, TruncMonth
-from django.views.decorators.http import require_POST
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_protect
-from django.contrib.auth.decorators import user_passes_test
-from django.contrib import messages
-
-from tutorial.models import YoutubeVideo, ViewerHistory, SearchHistory, Comment,SearchHistory, SearchResult
-from tutorial.forms import YoutubeVideoForm, CommentForm, SearchForm
-from tutorial.utils import track_video_view, track_search_query
-
-import json
-from datetime import datetime, timedelta
-from django.utils import timezone
-
-# views.py
+from django.shortcuts import render, redirect
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView, View
-from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
-from django.db.models import Count, Avg
-from django.http import JsonResponse, HttpResponseRedirect
-from django.utils import timezone
-from datetime import timedelta
+from django.http import JsonResponse
+from django.db.models import Count, Q, Avg
 from django.contrib import messages
-from django.db.models import Q
+from django.utils import timezone
+from tutorial.models import YoutubeVideo, ViewerHistory, SearchHistory, SearchResult
 import json
+from datetime import timedelta
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -57,11 +34,7 @@ class YADashboardView(LoginRequiredMixin, TemplateView):
         # Viewer statistics
         context['total_views'] = ViewerHistory.objects.count()
         context['views_last_30days'] = ViewerHistory.objects.filter(view_date__gte=thirty_days_ago).count()
-        
-        # Comment statistics
-        context['total_comments'] = Comment.objects.count()
-        context['comments_last_30days'] = Comment.objects.filter(created_at__gte=thirty_days_ago).count()
-        
+    
         # Search statistics
         context['total_searches'] = SearchHistory.objects.count()
         context['searches_last_30days'] = SearchHistory.objects.filter(search_date__gte=thirty_days_ago).count()
@@ -75,12 +48,6 @@ class YADashboardView(LoginRequiredMixin, TemplateView):
             views_count = ViewerHistory.objects.filter(view_date__date=day).count()
             views_data.append(views_count)
         
-        # Comments data
-        comments_data = []
-        for day in days_labels:
-            comments_count = Comment.objects.filter(created_at__date=day).count()
-            comments_data.append(comments_count)
-        
         # Searches data
         searches_data = []
         for day in days_labels:
@@ -89,7 +56,6 @@ class YADashboardView(LoginRequiredMixin, TemplateView):
         
         context['days_labels'] = json.dumps(days_labels)
         context['views_data'] = json.dumps(views_data)
-        context['comments_data'] = json.dumps(comments_data)
         context['searches_data'] = json.dumps(searches_data)
         
         return context
@@ -150,7 +116,6 @@ class YAVideoListView(LoginRequiredMixin, ListView):
             video_data = {
                 'video': video,
                 'view_count': ViewerHistory.objects.filter(video=video).count(),
-                'comment_count': Comment.objects.filter(video=video).count()
             }
             videos_with_stats.append(video_data)
         
@@ -187,9 +152,7 @@ class YAVideoDetailView(DetailView):
         context['view_count'] = ViewerHistory.objects.filter(video=video).count()
         context['list_view_count'] = ViewerHistory.objects.filter(video=video, page_type='list').count()
         context['detail_view_count'] = ViewerHistory.objects.filter(video=video, page_type='detail').count()
-        context['comment_count'] = Comment.objects.filter(video=video).count()
-        context['comments'] = Comment.objects.filter(video=video)
-        
+    
         # Track this view
         if not self.request.user.is_staff:  # Don't track admin views
             ViewerHistory.objects.create(
@@ -352,116 +315,3 @@ class YASearchHistoryView(LoginRequiredMixin, ListView):
         context['end_date'] = self.request.GET.get('end_date', '')
         
         return context
-
-class YACommentListView(LoginRequiredMixin, ListView):
-    model = Comment
-    template_name = 'tutorial/admn/comment_list.html'
-    context_object_name = 'comments'
-    paginate_by = 20
-    
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        
-        # Date filtering
-        start_date = self.request.GET.get('start_date')
-        end_date = self.request.GET.get('end_date')
-        
-        if start_date:
-            queryset = queryset.filter(created_at__gte=start_date)
-        if end_date:
-            queryset = queryset.filter(created_at__lte=end_date)
-        
-        return queryset
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        
-        # Statistics
-        context['total_comments'] = Comment.objects.count()
-        context['approved_comments'] = Comment.objects.filter(is_approved=True).count()
-        context['pending_comments'] = Comment.objects.filter(is_approved=False).count()
-        context['anonymous_comments'] = Comment.objects.filter(is_anonymous=True).count()
-        
-        # Average comments per video
-        video_count = YoutubeVideo.objects.count()
-        if video_count > 0:
-            context['avg_comments_per_video'] = context['total_comments'] / video_count
-        else:
-            context['avg_comments_per_video'] = 0
-        
-        # Graph data for comments over time
-        thirty_days_ago = timezone.now() - timedelta(days=30)
-        days_labels = [(timezone.now() - timedelta(days=x)).strftime('%Y-%m-%d') for x in range(30, -1, -1)]
-        
-        comments_data = []
-        for day in days_labels:
-            comments_count = Comment.objects.filter(created_at__date=day).count()
-            comments_data.append(comments_count)
-        
-        context['days_labels'] = json.dumps(days_labels)
-        context['comments_data'] = json.dumps(comments_data)
-        
-        # Get search parameters for maintaining state
-        context['start_date'] = self.request.GET.get('start_date', '')
-        context['end_date'] = self.request.GET.get('end_date', '')
-        
-        return context
-
-class YACommentApproveView(LoginRequiredMixin, View):
-    def post(self, request, *args, **kwargs):
-        comment = get_object_or_404(Comment, pk=kwargs['pk'])
-        comment.is_approved = not comment.is_approved
-        comment.save()
-        
-        if comment.is_approved:
-            messages.success(request, "Comment approved successfully!")
-        else:
-            messages.success(request, "Comment unapproved successfully!")
-        
-        return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse_lazy('youtube:comment_list')))
-
-class YACommentDeleteView(LoginRequiredMixin, DeleteView):
-    model = Comment
-    template_name = 'tutorial/admn/comment_confirm_delete.html'
-    
-    def get_success_url(self):
-        return reverse_lazy('youtube:comment_list')
-    
-    def delete(self, request, *args, **kwargs):
-        messages.success(request, "Comment deleted successfully!")
-        return super().delete(request, *args, **kwargs)
-
-class YAAddCommentView(View):
-    def post(self, request, *args, **kwargs):
-        video = get_object_or_404(YoutubeVideo, pk=kwargs['pk'])
-        content = request.POST.get('content', '')
-        is_anonymous = request.POST.get('is_anonymous', False) == 'on'
-        
-        if not content:
-            messages.error(request, "Comment cannot be empty!")
-            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
-        
-        if request.user.is_authenticated:
-            # Authenticated user
-            name = None if is_anonymous else request.user.get_full_name() or request.user.username
-            comment = Comment(
-                video=video,
-                user=None if is_anonymous else request.user,
-                name=name,
-                content=content,
-                is_anonymous=is_anonymous
-            )
-        else:
-            # Anonymous user
-            name = request.POST.get('name', '')
-            comment = Comment(
-                video=video,
-                user=None,
-                name=name,
-                content=content,
-                is_anonymous=True
-            )
-        
-        comment.save()
-        messages.success(request, "Comment added successfully!")
-        return HttpResponseRedirect(reverse_lazy('youtube:video_detail', kwargs={'pk': video.pk}))

@@ -1,0 +1,7 @@
+http://127.0.0.1:8000/accounts/login/
+
+
+
+
+Failed to fetch a list of Amazon Redshift Serverless namespaces.
+The AWS Access Key Id needs a subscription for the service

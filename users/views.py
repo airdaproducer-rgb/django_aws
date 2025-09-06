@@ -23,8 +23,6 @@ from . import utils
 
 User = get_user_model()
 
-def home(request):
-    return render(request, 'users/accounts/home.html')
 
 
 def register(request):
@@ -112,7 +110,7 @@ def verify_email(request):
             if 'verification_user_id' in request.session:
                 del request.session['verification_user_id']
                 
-            messages.success(request, "Email verified successfully. Welcome to AirNationMusic!")
+            messages.success(request, "Email verified successfully. Welcome to MMB Tutorials!")
             return redirect(reverse('software:app_user_list'))
         
     else:
@@ -171,10 +169,10 @@ class LoginView(View):
             login(request, user)
             
             # Redirect to next URL if provided and safe
-            next_url = request.GET.get('next', 'home')
+            next_url = request.GET.get('next', 'youtube:dashboard')
             if url_has_allowed_host_and_scheme(next_url, allowed_hosts=None):
                 return redirect(next_url)
-            return redirect('home')
+            return redirect('youtube:dashboard')
         else:
             messages.error(request, 'Invalid email or password')
             return render(request, self.template_name)
@@ -345,7 +343,7 @@ def about(request):
     return render(request, 'users/compliance/about.html')
 
 def donate_view(request):
-    share_url = 'https://airnationmusic.com'
+    share_url = 'https://MMB Tutorials.com'
     
     context = {
         'object_or_url': share_url,
