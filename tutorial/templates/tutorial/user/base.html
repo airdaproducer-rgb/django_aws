@@ -151,7 +151,9 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    {% block list %} 
     <header>
+        
         <div class="container">
             <div class="header-content">
                 <div class="brand">
@@ -174,7 +176,8 @@
             </div>
         </div>
     </header>
-    
+    {% endblock %}
+
     <main>
         <div class="container">
             {% block content %}{% endblock %}
