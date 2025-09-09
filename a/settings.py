@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_ckeditor_5',
     'django.contrib.humanize',
+    "django.contrib.sitemaps",
     'corsheaders',
     'users.apps.UsersConfig',
     'tutorial.apps.TutorialConfig',

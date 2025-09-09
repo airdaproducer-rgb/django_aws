@@ -22,6 +22,14 @@ from django.conf.urls.static import static
 from users.views import terms_of_use,donate_view,privacy_policy,help_center,about
 from django.contrib.auth import views as auth_views
 from tutorial.view.t_user import UserListView
+from django.contrib import sitemaps
+from django.contrib.sitemaps.views import sitemap
+from tutorial.sitemaps import YoutubeVideoSitemap
+
+sitemaps_dict = {
+    "videos": YoutubeVideoSitemap,
+}
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -62,6 +70,8 @@ urlpatterns = [
             template_name='users/password_reset/password-reset-complete.html'
         ), 
         name='password_reset_complete'),
+
+    path("sitemap.xml", sitemap, {"sitemaps": sitemaps_dict}, name="django.contrib.sitemaps.views.sitemap"),
 
 
 ]
