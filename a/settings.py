@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-ftym5*b#aukx)z0xuiq60nr!4e-s2pd*j3=1_8f_^*3(vc#_1k
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['https://mmb-tutorial-i8vua.ondigitalocean.app','mmb-tutorial-i8vua.ondigitalocean.app','fromdown.xyz','www.fromdown.xyz','localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -83,28 +83,11 @@ LOGIN_REDIRECT_URL = 'youtube:dashboard'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-"""
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-"""
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'defaultdb',                   
-        'USER': 'doadmin',                   
-        'PASSWORD': 'AVNS_DAsG7abd6bTBswqji-j', 
-        'HOST': 'mmb-db-do-user-24848927-0.k.db.ondigitalocean.com', 
-        'PORT': '25060',                    
-        'OPTIONS': {
-            'sslmode': 'require', 
-            'sslrootcert': os.path.join(BASE_DIR, 'ca-certificate.crt'),
-            'connect_timeout': 90,             
-        },
     }
 }
 
