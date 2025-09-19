@@ -32,8 +32,6 @@ deep-translator==1.11.4
 distro==1.9.0
 dj-database-url==3.0.0
 Django==5.2.2
-django-ckeditor-5==0.2.18
-django-cors-headers==4.7.0
 django-heroku==0.3.1
 django-ipware==7.0.1
 django-js-asset==3.1.2
