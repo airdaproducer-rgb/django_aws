@@ -42,8 +42,6 @@ urlpatterns = [
     path('help_center/', help_center, name='help_center'),
     path('about/', about, name='about'),
     
-    path('ckeditor5/', include('django_ckeditor_5.urls')),
-
     # Password reset URLs
     path('password-reset/', 
         auth_views.PasswordResetView.as_view(

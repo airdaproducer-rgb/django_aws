@@ -36,7 +36,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_ckeditor_5',
     'django.contrib.humanize',
     "django.contrib.sitemaps",
     'corsheaders',
@@ -156,37 +155,6 @@ CACHES = {
         'LOCATION': 'unique-snowflake',
     }
 }
-
-
-# CKEditor 5 Configurations
-customColorPalette = [
-    {'color': 'hsl(4, 90%, 58%)', 'label': 'Red'},
-    {'color': 'hsl(340, 82%, 52%)', 'label': 'Pink'},
-    {'color': 'hsl(291, 64%, 42%)', 'label': 'Purple'},
-    {'color': 'hsl(262, 52%, 47%)', 'label': 'Deep Purple'},
-    {'color': 'hsl(231, 48%, 48%)', 'label': 'Indigo'},
-    {'color': 'hsl(207, 90%, 54%)', 'label': 'Blue'},
-]
-
-
-CKEDITOR_5_CONFIGS = {
-    'tips': {
-        'toolbar': ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote'],
-        'heading': {
-            'options': [
-                {'model': 'paragraph', 'title': 'Paragraph', 'class': 'ck-heading_paragraph'},
-                {'model': 'heading1', 'view': 'h1', 'title': 'Heading 1', 'class': 'ck-heading_heading1'},
-                {'model': 'heading2', 'view': 'h2', 'title': 'Heading 2', 'class': 'ck-heading_heading2'},
-            ]
-        }
-    },
-}
-
-# File upload settings
-CKEDITOR_5_FILE_UPLOAD_PERMISSION = 'staff'  # Restrict to staff users
-CKEDITOR_5_UPLOAD_FILE_TYPES = ['jpeg', 'png', 'pdf']  # Allowed file types
-
-
 
 # Logging for debugging
 LOGGING = {
